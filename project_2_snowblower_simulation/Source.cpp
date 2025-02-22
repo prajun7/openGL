@@ -126,41 +126,38 @@ void drawSnowman() {
   drawBox(60.0f, 250.0f, 260.0f);
 
   glBegin(GL_LINES);
-    // Left Arm
-    glVertex3f(225.0f, 205.0f, 0.0f);  // Start from the middle of the second box
-    glVertex3f(195.0f, 235.0f, 0.0f);  // 40 units upward-left
+    
+    // Left Arm (diagonal upward-left)
+    glVertex3f(225, 205, 0.0f);  // Start from the middle of the second box
+    glVertex3f(197, 233, 0.0f);  // 40 units upward-left
 
     // Left fingers
-    glVertex3f(195.0f, 235.0f, 0.0f);
-    glVertex3f(188.0f, 249.0f, 0.0f);  // Upward branch
+    glVertex3f(197, 233, 0.0f);
+    glVertex3f(191, 239, 0.0f);  // Upward branch
 
-    glVertex3f(195.0f, 235.0f, 0.0f);
-    glVertex3f(188.0f, 228.0f, 0.0f);  // Downward branch
+    glVertex3f(197, 233, 0.0f);
+    glVertex3f(193, 226, 0.0f);  // Downward branch
 
-    // Right Arm (diagonal upwards)
-    glVertex3f(335.0f, 205.0f, 0.0f);  // Start from the middle of the second box
-    glVertex3f(365.0f, 242.0f, 0.0f);  // 40 units upward-right
+    // Right Arm (diagonal upward-right)
+    glVertex3f(335, 205, 0.0f);  // Start from the middle of the second box
+    glVertex3f(363, 233, 0.0f);  // 40 units upward-right
 
     // Right fingers
-    glVertex3f(365.0f, 235.0f, 0.0f);
-    glVertex3f(372.0f, 249.0f, 0.0f);  // Upward branch
+    glVertex3f(363, 233, 0.0f);
+    glVertex3f(369, 237, 0.0f);  // Upward branch
 
-    glVertex3f(365.0f, 235.0f, 0.0f);
-    glVertex3f(372.0f, 228.0f, 0.0f);  // Downward branch
+    glVertex3f(363, 233, 0.0f);
+    glVertex3f(367, 242, 0.0f);  // Downward branch
   glEnd();
 
+  // Nose (cone pointing right)
   glColor3f(1.0f, 0.5f, 0.0f); // Orange color for the nose
+    glBegin(GL_LINES);
+    glVertex3f(242, 290, 0.0f);  // Base center of nose
+    glVertex3f(257, 294, 0.0f);  // Upper tip of nose (extended to 15 units)
 
-  glBegin(GL_LINES);
-    // Left-pointing open triangle (nose)
-    glVertex3f(260.0f, 290.0f, 0.0f);  // Tip of the nose (leftmost point)
-
-    glVertex3f(275.0f, 280.0f, 0.0f);  // Bottom-right of the nose base
-    glVertex3f(275.0f, 280.0f, 0.0f);  // Bottom-right of the nose base
-
-    glVertex3f(275.0f, 300.0f, 0.0f);  // Top-right of the nose base
-    glVertex3f(275.0f, 300.0f, 0.0f);  // Top-right of the nose base
-
+    glVertex3f(242, 290, 0.0f);
+    glVertex3f(257, 286, 0.0f);  // Lower tip of nose (extended to 15 units)
   glEnd();
 
   glColor3f(1.0f, 1.0f, 1.0f);
