@@ -229,15 +229,18 @@ void timerHandler(int val) {
 void mouseHandler(int button, int state, int x, int y) {
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
     if (!animationStarted) {
-        animationStarted = true;  // Hides the message on first click.
-        glutPostRedisplay();  // Redraws to remove the message.
-    }
-    glutTimerFunc(66, timerHandler, 1);
+        animationStarted = true; 
+
+        // Should be inside the if-block so that the multiple mouse click
+        // won't keep triggering the timerHandler.
+        glutTimerFunc(66, timerHandler, 1);
+      }
   }
 }
 
 /**
- * Method to resumeAnimation once it is paused
+ * Method to resumeAnimation once it is paused.
+ * Used in `keyboardHandler`.
  */
 void resumeAnimation(int val) {
   isPaused = false;
@@ -245,8 +248,8 @@ void resumeAnimation(int val) {
 }
 
 /**
- * Keyboard Handler triggers the snow blower when the key b is pressed.
- * It also, triggers the pause when the key p is pressed. 
+ * Keyboard Handler triggers the snow blower when the key `b` is pressed.
+ * It also, triggers the pause when the key `p` is pressed. 
  */
 void keyboardHandler(unsigned char key, int x, int y) {
   if ((key == 'b' || key == 'B') && snowBlowerRemainingCount > 0) {
@@ -272,9 +275,10 @@ void keyboardHandler(unsigned char key, int x, int y) {
 
 /**
  * Method to init the DisplayLists.
+ * Used in main function.
  */
 void initDisplayLists() {
-  // Display list for snowman
+  // Display list for snowman.
   snowmanListIdx = glGenLists(1);
   glNewList(snowmanListIdx, GL_COMPILE);
     drawSnowman();
@@ -283,14 +287,14 @@ void initDisplayLists() {
   // Display list for the startup message.
   startMessageListIdx = glGenLists(2);
   glNewList(startMessageListIdx, GL_COMPILE);
-      glRasterPos2i(180, 300);
-      const char* startMsg = "Any Mouse Click Will Start";
-      for (const char* c = startMsg; *c != '\0'; c++) {
-          glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
-      }
+    glRasterPos2i(180, 300);
+    const char* startMsg = "Any Mouse Click Will Start";
+    for (const char* c = startMsg; *c != '\0'; c++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+    }
   glEndList();
 
-  // Display list for text remaining
+  // Display list for text remaining.
   remainingMessageListIdx = glGenLists(3);  
   glNewList(remainingMessageListIdx, GL_COMPILE);
     glRasterPos2i(450, 580);
@@ -312,7 +316,8 @@ void initDisplayLists() {
 }
 
 /**
-* The display handler sets up the display and draws the initial scene with a snowman and a snowflakes.
+* The display handler sets up the display and renders the initial scene with a snowman and a snowflakes.alignas
+* It executed the series of display lists to render the texts and snowman.
 * The background is cleared to dark grey, and the objects are rendered in white by default.
 */
 void displayHandler()
@@ -331,7 +336,6 @@ void displayHandler()
     drawSnowFlake(centerXSecond, centerYSecond);
   }
 
-  // Call display list for static text
   glCallList(remainingMessageListIdx);
 
   glRasterPos2i(540, 580);
