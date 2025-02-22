@@ -1,16 +1,13 @@
 /**
- * Graphics Pgm 1 for Prajun Trital
+ * Graphics Pgm 2 for Prajun Trital
  * 
  * EXTRA CREDIT
- * - The snowfalke changes its orientation based on the frame count - odd frame and even frame.
- * - When the two snowflake reaches the bottom of the canvas, the user is prompted to restart 
- *      the animation of snowflakes. When the user presses any key, it moves the two gray snowflakes upwards.
- * - Second snowflake is added on the right side of the screens.
+ * - 
  * 
- * ARCHITECTURE
- * GLUT event-driven generation of a canvas with a 3 boxed snowman and animated snowflakes on it.
- * Canvas is produced via the display event handler, which is in display_func. 
- * The `display_func` calls the `drawSnowman` function to draw the 3 boxed snowman. It also calls the
+ * ARCHITECTURE - TODO - talk about display list, how it is used to build snowman
+ * GLUT event-driven generation of a canvas with a 3 boxed snowman, animated snowflakes and a snowblower.
+ * Canvas is produced via the display event handler, which is in display_handler. 
+ * The `display_handler` calls the `drawSnowman` function to draw the 3 boxed snowman. It also calls the
  * `drawSnowFlake` function twice to draw two snowfalkes on the left and right of the canvas. The `timer_func` 
  * updates the position of the snowflakes, clears the previously drawn snowfalke with the `clearSnowFlake` 
  * function, and updates the `frameCount` variable that decides to change the snowflake orientation. 
@@ -23,255 +20,252 @@
 #include <GL/freeglut.h> 
 #include <stdio.h>
 #include "OpenGL445Setup-2025.h"
+#include <string>
+
+const float SNOWFLAKE_MOVE_DOWN = 10.0f;
+const float SNOWFLAKE_MOVE_RIGHT = 2.0f;
 
 // Lenght of the snowflake.
-const float length = 60.0f;
+const float SNOWFLAKE_LENGTH = 60.0f;
 
-// Y-cordinate of the initial snowflake.
-float centerY = 584.0f;
+// Y-cordinate of the initial left most snowflake.
+float centerY = 578.0f;
 
-// Determines if the snowflake should move upward or downward.
-bool moveUpward = false;
+// Y-cordinate of the second snowflake.
+float centerYSecond = 578.0f;
 
-// Tracks the frame count and draws different orientation of snowflake.
-int frameCount = 0;
-
-// My last name starts with T, so I need to take 70. 
 // To calculate the distance from the leftmost diagonal of the snowflake, 
-// I need to add the horizontal distance based on the 
-// sine of 60 degrees (sin(60) = opposite/hypotenuse).
-// so, centerX = 70 + ((60 / 2) * sin(60))
-const float centerX = 70 + 25.98;
+// I need to add the horizontal distance based on the cosine of 60 degrees, 
+// i.e., centerX = ((60 / 2) * cos(60))
+float centerX = 15;
 
-// For the second flare on the right side
-// centerX_second = 530 - ((60 / 2) * sin(60))
-const float centerX_second = 530 - 25.98;
+// Other snowflakes start with the left tips 100 units from the left edge screen
+float centerXSecond = 100 + 15;
 
-/**
- * Draws a snowflake with a vertical main line with diagonal lines at ±60 degrees 
- * relative to the vertical axis.
- * 
- * Computes the vertical and horizontal distance using, 
- * ((60 / 2) * sin(60)) = 25.98
- * ((60 / 2) * cos(60)) = 15
- * 
- * @param centerX X-coordinate of the center point of the snowflake.
- */
-void drawOddSnowFlake(float centerX) {
-    // Vertical main line
-    glVertex3f(centerX, centerY - length / 2, 0.0f);
-    glVertex3f(centerX, centerY + length / 2, 0.0f);
+// Maximum number of times the snowblower can be activated.
+int remainingActivations = 20;
 
-    // Diagonal lines at ±60 degrees from the vertical axis
-    glVertex3f(centerX - 25.98f, centerY + 15.0f, 0.0f);
-    glVertex3f(centerX + 25.98f, centerY - 15.0f, 0.0f);
+// Display list idx for "Any Mouse Click Will Start" message
+GLuint startMessageListIdx;
 
-    glVertex3f(centerX - 25.98f, centerY - 15.0f, 0.0f);
-    glVertex3f(centerX + 25.98f, centerY + 15.0f, 0.0f);
-}
+// Display list idx for "Any Mouse Click Will Start" message
+GLuint remainingMessageListIdx;
+
+// Display list idx for snowman
+GLuint snowmanListIdx;
+
+bool animationStarted = false;
+
+// Tracks the progress of the first snowflake
+bool secondSnowflakeActive = false;
 
 /**
- * Draws a snowflake with a horizontal main line with diagonal lines at ±60 degrees 
- * relative to the horizontal axis
- * 
- * @param centerX x-coordinate of the center point of the snowflake.
- */
-void drawEvenSnowFlake(float centerX) {
-    // Horizontal main line
-    glVertex3f(centerX - length / 2, centerY, 0.0f);
-    glVertex3f(centerX + length / 2, centerY, 0.0f);
+* Draws a snowflake with a horizontal main line with diagonal lines at ±60 degrees 
+* relative to the horizontal axis
+* 
+* @param centerX x-coordinate of the center point of the snowflake.
+*/
+void drawSnowFlake(float centerX, float centerY) {
+    glColor3f(1.0, 1.0, 1.0);  
 
-    // Diagonal lines at ±60 degrees from the horizontal axis
-    glVertex3f(centerX - 15.0f, centerY - 25.98f, 0.0f);
-    glVertex3f(centerX + 15.0f, centerY + 25.98f, 0.0f);
-
-    glVertex3f(centerX - 15.0f, centerY + 25.98f, 0.0f);
-    glVertex3f(centerX + 15.0f, centerY - 25.98f, 0.0f);
-}
-
-/**
- * Draws a snowflake at a (centerX, centerY) position.
- * The shape and appearance of the snowflake depend on whether it is an 
- * "even frame" or an "odd frame."
- * The snowflake is constructed using 4 right-angled triangles by calculating 
- * additional points
- * using sine and cosine functions to determine their lengths.
- * 
- * @param centerX x-coordinate of the center of the snowflake.
- * @param isEvenFrame A boolean indicating the style of the snowflake:
- *                    - `true` for horizontal base with diagonal lines
- *                    - `false` for vertical base with diagonal lines
- */
-void drawSnowFlake(float centerX, bool isEvenFrame) {
-    if (moveUpward) {
-        glColor3f(0.5f, 0.5f, 0.5f);  // Gray if snowflake is moving upward
-    } else {
-        glColor3f(1.0f, 1.0f, 1.0f);   // White if snowfalke is moving downward
-    }
-
-    glBegin(GL_LINES);
-
-    if (isEvenFrame) {
-        drawEvenSnowFlake(centerX);
-    } else {
-        drawOddSnowFlake(centerX);
-    }
+    glBegin(GL_LINES); 
+      // Horizontal main line
+      glVertex3f(centerX - SNOWFLAKE_LENGTH / 2, centerY, 0.0f);
+      glVertex3f(centerX + SNOWFLAKE_LENGTH / 2, centerY, 0.0f);
+  
+      // Diagonal lines at ±60 degrees from the horizontal axis
+      glVertex3f(centerX - 15.0f, centerY - 25.98f, 0.0f);
+      glVertex3f(centerX + 15.0f, centerY + 25.98f, 0.0f);
+  
+      glVertex3f(centerX - 15.0f, centerY + 25.98f, 0.0f);
+      glVertex3f(centerX + 15.0f, centerY - 25.98f, 0.0f);
 
     glEnd();
     glFlush();
 }
 
 /**
- * Draws a box using series of lines.
- * We start with bottom-left -> bottom-right -> top-right and top-left, 
- * similar to how the GL_POLYGON draws.
- * 
- * @param length The length of the box
- * @param x_start The x-coordinate of the box
- * @param y_start The y-coordinate of the box
- */
+* Draws a box using series of lines.
+* We start with bottom-left -> bottom-right -> top-right and top-left, 
+* similar to how the GL_POLYGON draws.
+* 
+* @param length The length of the box
+* @param x_start The x-coordinate of the bottonm left
+* @param y_start The y-coordinate of the botton left
+*/
 void drawBox(float length, float x_start, float y_start) {
-    glColor3f(1.0, 1.0, 1.0); 
-    glBegin(GL_LINES);  
-        // Bottom edge
-        glVertex3f(x_start, y_start, 0.0f);
-        glVertex3f(x_start + length, y_start, 0.0f);
+  glColor3f(1.0, 1.0, 1.0); 
+  glBegin(GL_LINES);  
+    // Bottom edge
+    glVertex3f(x_start, y_start, 0.0f);
+    glVertex3f(x_start + length, y_start, 0.0f);
 
-        // Right edge
-        glVertex3f(x_start + length, y_start, 0.0f);
-        glVertex3f(x_start + length, y_start + length, 0.0f);
+    // Right edge
+    glVertex3f(x_start + length, y_start, 0.0f);
+    glVertex3f(x_start + length, y_start + length, 0.0f);
 
-        // Top edge
-        glVertex3f(x_start + length, y_start + length, 0.0f);
-        glVertex3f(x_start, y_start + length, 0.0f);
+    // Top edge
+    glVertex3f(x_start + length, y_start + length, 0.0f);
+    glVertex3f(x_start, y_start + length, 0.0f);
 
-        // Left edge
-        glVertex3f(x_start, y_start + length, 0.0f);
-        glVertex3f(x_start, y_start, 0.0f);
-    glEnd();
-    glFlush();
-}
-
-/**
- * Draws the 3 box snowman.
- */
-void drawSnowman() {
-    drawBox(150.0f, 320.0f, 0.0f);
-    drawBox(110.0f, 340.0f, 150.0f);
-    drawBox(60.0f, 365.0f, 260.0f);
-}
-
-/**
- * I initially used glClear(GL_COLOR_BUFFER_BIT) in the timer_function, 
- * but it clears the entire screen, including the box. 
- * Redrawing the box would fix this, but it flickers the screen.
- * 
- * So, I am drawing a black rectangle to cover the previous snowflake.
- * 
- * @param centerX The x-coordinate of the center of the snowflake.
- * @param centerY The y-coordinate of the center of the snowflake.
- */
-void clearSnowFlake(float centerX, float centerY)
-{
-  glColor3f(0.0, 0.0, 0.0); 
-  glBegin(GL_POLYGON);
-      glVertex3f(centerX - (length / 2), centerY - (length / 2), 0.0f);
-      glVertex3f(centerX + (length / 2), centerY - (length / 2), 0.0f);
-      glVertex3f(centerX + (length / 2), centerY + (length / 2), 0.0f);
-      glVertex3f(centerX - (length / 2), centerY + (length / 2), 0.0f);
+    // Left edge
+    glVertex3f(x_start, y_start + length, 0.0f);
+    glVertex3f(x_start, y_start, 0.0f);
   glEnd();
+  glFlush();
+}
+
+/**
+* Draws the 3 box snowman.
+*/
+void drawSnowman() {
+  drawBox(150.0f, 205.0f, 0.0f);
+  drawBox(110.0f, 225.0f, 150.0f);
+  drawBox(60.0f, 250.0f, 260.0f);
 }
 
 /**
  * Animates the two snowflakes to make them move upward or downward using frame based animation.
  * The animation alternates between even and odd frames, drawing different snowflake patterns.
  * 
- * - If `moveUpward` is true, the snowflakes move upward until `centerY` reaches 584.
- * - If `moveUpward` is false, the snowflakes move downward until `centerY` reaches 20.
- * 
  * @param val Integer Used to determine which time event to envoke.
  */
-void timer_function(int val)
-{
-    clearSnowFlake(centerX, centerY);
-    clearSnowFlake(centerX_second, centerY);
+/**
+ * Timer function to animate both snowflakes.
+ */
+void timerHandler(int val) {
+  // Move first snowflake
+  if (centerY > 20) { 
+      centerY -= SNOWFLAKE_MOVE_DOWN;  // Moves down
+      centerX += SNOWFLAKE_MOVE_RIGHT;  // Moves right
+  } else {
+      centerY = 578; // Reset to top
+      centerX = 15;
+  }
 
-    frameCount++;
+  // Activate second snowflake when first is halfway
+  if (centerY < 300) {
+      secondSnowflakeActive = true;
+  }
 
-    if (moveUpward) {
-        if (centerY < 584) {
-            centerY += 15;  
-            glutTimerFunc(66, timer_function, 1); 
-        } else {            
-            // When the snowflakes reach the top, the frame count is adjusted to end on an odd frame
-            if (frameCount % 2 == 0) {
-                frameCount++;
-            }
-        }
-    } else {
-        if (centerY > 20) { 
-            centerY -= 15;  
-            glutTimerFunc(66, timer_function, 1); 
-        } else {
-            printf("Press any key to move the snowflakes upward\n"); 
-        }
-    }
+  // Move second snowflake
+  if (secondSnowflakeActive) {
+      if (centerYSecond > 20) {
+          centerYSecond -= SNOWFLAKE_MOVE_DOWN;
+          centerXSecond += SNOWFLAKE_MOVE_RIGHT;
+      } else {
+          centerYSecond = 578;
+          centerXSecond = 100 + 15;
+          secondSnowflakeActive = false; 
+      }
+  }
 
-    bool isEvenFrame = (frameCount % 2 == 0);
-    drawSnowFlake(centerX, isEvenFrame);
-    drawSnowFlake(centerX_second, isEvenFrame);
-    glFlush();
+  glutPostRedisplay();
+  glutTimerFunc(66, timerHandler, 1);
 }
 
 /**
- * The keyboard handler triggers the animation using `glutTimerFunc`.
- * It also sets the moveUpward to True once the snowflake reaches the bottom of the screen
- * 
- * @param key Key pressed by the user.
- * @param x X-coordinate of mouse when the key is pressed
- * @param y Y-coordinate of mouse when the key is pressed
+ * Mouse click handler to start snowflake animation.
  */
-void keyboard_func(unsigned char key, int x, int y)
-{
-    if (centerY <= 20) {
-        moveUpward = true; 
+void mouseHandler(int button, int state, int x, int y) {
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+    if (!animationStarted) {
+        animationStarted = true;  // Hide the message on first click.
+        glutPostRedisplay();  // Force a redraw to remove the message.
     }
-    glutTimerFunc(66, timer_function, 1); 
+    glutTimerFunc(66, timerHandler, 1);
+  }
 }
 
-/**
- * Sets up the display and draws the initial scene with a snowman and two snowflakes.
- * The background is cleared to black, and the objects are rendered in white by default.
- */
-void display_func()
-{
-    glClearColor(0.0, 0.0, 0.0, 1.0); 
-    glClear(GL_COLOR_BUFFER_BIT);
-        
+void keyboardHandler(unsigned char key, int x, int y) {
+  if ((key == 'b' || key == 'B') && remainingActivations > 0) {
+      // Displace snowflakes (if within the vertical range 200 to 400) rightward by 4 units.
+      if (centerY >= 200 && centerY <= 400) {
+          centerX += 4.0f;
+      }
+      if (secondSnowflakeActive && centerYSecond >= 200 && centerYSecond <= 400) {
+          centerXSecond += 4.0f;
+      }
+      remainingActivations--;  // Decrement the activations counter.
+      glutPostRedisplay();
+  }
+}
+
+void initDisplayList() {
+  // Create display list for snowman
+  snowmanListIdx = glGenLists(1);
+  glNewList(snowmanListIdx, GL_COMPILE);
     drawSnowman();
+  glEndList();
 
-    drawSnowFlake(centerX, false);
-    drawSnowFlake(centerX_second, false);
+  // Create a display list for the startup message.
+  startMessageListIdx = glGenLists(2);
+  glNewList(startMessageListIdx, GL_COMPILE);
+      glRasterPos2i(180, 300);
+      const char* startMsg = "Any Mouse Click Will Start";
+      for (const char* c = startMsg; *c != '\0'; c++) {
+          glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+      }
+  glEndList();
 
-    glFlush(); 
+  remainingMessageListIdx = glGenLists(3);  
+  glNewList(startMessageListIdx, GL_COMPILE);
+    glRasterPos2i(450, 580);
+    const char* remainingMsg = "Remaining ";
+    for (const char* c = remainingMsg; *c != '\0'; c++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+  glEndList();
+}
+
+/**
+* The display handler sets up the display and draws the initial scene with a snowman and two snowflakes.
+* The background is cleared to black, and the objects are rendered in white by default.
+*/
+void displayHandler()
+{
+  glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glCallList(snowmanListIdx);
+
+  if (!animationStarted) {
+      glCallList(startMessageListIdx);
+  }
+
+  drawSnowFlake(centerX, centerY);
+  if (secondSnowflakeActive) {
+    drawSnowFlake(centerXSecond, centerYSecond);
+  }
+
+  glCallList(startMessageListIdx);
+
+  // Call display list for static text
+  glCallList(remainingMessageListIdx);
+
+  glRasterPos2i(540, 580); // Position next to "Remaining: "
+  std::string numStr = std::to_string(remainingActivations);
+  for (size_t i = 0; i < numStr.length(); i++) {
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, numStr[i]);
+  }
+  glFlush(); 
 }
 
 #define canvas_Width 600
 #define canvas_Height 600
 
-char canvas_Name[] = "Wintry Scene";
+char canvas_Name[] = "Snoowblower Simulation";
 
 int main(int argc, char ** argv)
 {
-    glutInit(&argc, argv);
-    my_setup(canvas_Width, canvas_Height, canvas_Name);
+  glutInit(&argc, argv);
+  my_setup(canvas_Width, canvas_Height, canvas_Name);
 
-    printf("Any Key Click Will Start\n");  
+  initDisplayList();
 
-    glutKeyboardFunc(keyboard_func);
-    glutDisplayFunc(display_func);
+  glutDisplayFunc(displayHandler);
+  glutMouseFunc(mouseHandler);
+  glutKeyboardFunc(keyboardHandler);
 
-    glutMainLoop(); 
-    return 0;
+  glutMainLoop(); 
+  return 0;
 }
-
