@@ -96,7 +96,7 @@ void drawSnowFlake(float centerX, float centerY) {
 * @param y_start The y-coordinate of the botton left
 */
 void drawBox(float length, float x_start, float y_start) {
-  glColor3f(1.0, 1.0, 1.0); 
+  glColor3f(1.0f, 1.0f, 1.0f); 
   glBegin(GL_LINES);  
     // Bottom edge
     glVertex3f(x_start, y_start, 0.0f);
@@ -118,12 +118,52 @@ void drawBox(float length, float x_start, float y_start) {
 }
 
 /**
-* Draws the 3 box snowman.
+* Draws the 3 box snowman with 2 hands, 2 fingers and a orange nose.
 */
 void drawSnowman() {
   drawBox(150.0f, 205.0f, 0.0f);
   drawBox(110.0f, 225.0f, 150.0f);
   drawBox(60.0f, 250.0f, 260.0f);
+
+  glBegin(GL_LINES);
+    // Left Arm
+    glVertex3f(225.0f, 205.0f, 0.0f);  // Start from the middle of the second box
+    glVertex3f(195.0f, 235.0f, 0.0f);  // 40 units upward-left
+
+    // Left fingers
+    glVertex3f(195.0f, 235.0f, 0.0f);
+    glVertex3f(188.0f, 249.0f, 0.0f);  // Upward branch
+
+    glVertex3f(195.0f, 235.0f, 0.0f);
+    glVertex3f(188.0f, 228.0f, 0.0f);  // Downward branch
+
+    // Right Arm (diagonal upwards)
+    glVertex3f(335.0f, 205.0f, 0.0f);  // Start from the middle of the second box
+    glVertex3f(365.0f, 242.0f, 0.0f);  // 40 units upward-right
+
+    // Right fingers
+    glVertex3f(365.0f, 235.0f, 0.0f);
+    glVertex3f(372.0f, 249.0f, 0.0f);  // Upward branch
+
+    glVertex3f(365.0f, 235.0f, 0.0f);
+    glVertex3f(372.0f, 228.0f, 0.0f);  // Downward branch
+  glEnd();
+
+  glColor3f(1.0f, 0.5f, 0.0f); // Orange color for the nose
+
+  glBegin(GL_LINES);
+    // Left-pointing open triangle (nose)
+    glVertex3f(260.0f, 290.0f, 0.0f);  // Tip of the nose (leftmost point)
+
+    glVertex3f(275.0f, 280.0f, 0.0f);  // Bottom-right of the nose base
+    glVertex3f(275.0f, 280.0f, 0.0f);  // Bottom-right of the nose base
+
+    glVertex3f(275.0f, 300.0f, 0.0f);  // Top-right of the nose base
+    glVertex3f(275.0f, 300.0f, 0.0f);  // Top-right of the nose base
+
+  glEnd();
+
+  glColor3f(1.0f, 1.0f, 1.0f);
 }
 
 /**
