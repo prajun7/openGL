@@ -2,18 +2,32 @@
  * Graphics Pgm 2 for Prajun Trital
  * 
  * EXTRA CREDIT
- * - 
+ * - The snowman has a carrot nose and stick arms.
+ * - Snowblower is limited to 20 uses.
+ * - The animation pauses for 1 second when the 'p' key is pressed.
  * 
- * ARCHITECTURE - TODO - talk about display list, how it is used to build snowman
+ * ARCHITECTURE
  * GLUT event-driven generation of a canvas with a 3 boxed snowman, animated snowflakes and a snowblower.
- * Canvas is produced via the display event handler, which is in display_handler. 
- * The `display_handler` calls the `drawSnowman` function to draw the 3 boxed snowman. It also calls the
- * `drawSnowFlake` function twice to draw two snowfalkes on the left and right of the canvas. The `timer_func` 
- * updates the position of the snowflakes, clears the previously drawn snowfalke with the `clearSnowFlake` 
- * function, and updates the `frameCount` variable that decides to change the snowflake orientation. 
- * The `timer_func` uses 66 ms as the time interval to achieve an animation running at approximately 
- * 16 Frame per second(FPS). The `keyboard_func` detects the keyboard presses to activate the animation. 
- * It also sets the `moveUpward` variable to True if the snowflakes are at the bottom of the canvas.
+ * Canvas is produced via the display event handler, which is in `displayHandler`, which calls the series of 
+ * display lists to draw text on the screen using `GLUT_BITMAP` and draws the snowman using the `drawSnowman` 
+ * function. The `timerHandler` updates the position of the snowflakes and uses 66 ms as the time interval
+ * to achieve an animation running at approximately 16 Frame per second(FPS). The `keyboardHandler` detects 
+ * the keyboard press to activate the snowblower, while the`mouseHandler` detects the mouse click to start 
+ * the animation. The `initDisplayLists` initiates the four displayLists to record a set of drawing commands 
+ * for snowman, and three different messages. The `initDisplayLists` is called in the main function.
+ * Compared to Program 1, I no longer use a `clearSnowFlake` method to clear the snowflakes, and I do not 
+ * draw the snowman or snowflakes in the `timerHandler`. Instead, I use `glutPostRedisplay()` to request a new draw.
+ * Additionally, I changed `glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB)` to `glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)`
+ * in the `OpenGL445Setup-2025.h` file to enable double buffering, which effectively eliminates screen 
+ * flickering in static content.
+ * 
+ * EXTRA CREDIT ARCHITECTURE
+ * The `drawSnowman` function renders a snowman with a carrot nose and stick arms. The 'snowBlowerRemainingCount'
+ * variable tracks the remaining number of times the snowblower can be used. The `keyboardHandler` updates
+ * the `snowBlowerRemainingCount`, and the `displayHandler` displays the reamining count. The `isPaused` boolean
+ * tracks whether the animation is paused. The `keyboardHandler` sets `isPaused` to true and triggers 
+ * a `resumeAnimation` functtion that runs after 1 seconds, setting `isPaused` back to false. The `timerHandler` 
+ * exits early without updating the x and y coordinates of snowflakes when `isPaused` is true.
  */
 
 #include <GL/glew.h>
@@ -25,7 +39,6 @@
 const float SNOWFLAKE_MOVE_DOWN = 10.0f;
 const float SNOWFLAKE_MOVE_RIGHT = 2.0f;
 
-// Length of the snowflake.
 const float SNOWFLAKE_LENGTH = 60.0f;
 
 // Y-cordinate of the initial left most snowflake.
@@ -51,23 +64,24 @@ GLuint remainingMessageListIdx;
 // Display list idx for "Press p to pause, once started" message.
 GLuint pauseMessageListIdx;
 
-// Display list idx for snowman.
+// Display list idx to draw snowman.
 GLuint snowmanListIdx;
 
-// Tracks if the animation started or not. Used in mouseHandler and displayHandler.
+// Tracks if the animation started or not. Used in `mouseHandler` and `displayHandler`.
 bool animationStarted = false;
 
+// Tracks if the second snowflake is active.
 bool secondSnowflakeActive = false;
 
-// Tracks if the animation is paused or not.
-bool isPaused = false;
+// Tracks if the animation is paused or not. Used in `keyboardHandler` and `TimerHandler`
+bool isPaused = false; 
 
 // Maximum number of times the snowblower can be activated.
 int snowBlowerRemainingCount = 20;
 
 /**
 * Draws a snowflake with a horizontal main line with diagonal lines at ±60 degrees 
-* relative to the horizontal axis
+* relative to the horizontal axis.
 * 
 * @param centerX x-coordinate of the center point of the snowflake.
 * @param centerY y-coordinate of the center point of the snowflake.
@@ -93,8 +107,7 @@ void drawSnowFlake(float centerX, float centerY) {
 
 /**
 * Draws a box using series of lines.
-* We start with bottom-left -> bottom-right -> top-right and top-left, 
-* similar to how the GL_POLYGON draws.
+* We start with bottom-left -> bottom-right -> top-right and top-left.
 * 
 * @param length The length of the box
 * @param x_start The x-coordinate of the bottonm left
@@ -123,7 +136,7 @@ void drawBox(float length, float x_start, float y_start) {
 }
 
 /**
-* Draws the 3 box snowman with 2 hands, 2 fingers and a orange nose.
+* Draws the 3-box snowman with 2 arms, 2 fingers and an orange nose.
 */
 void drawSnowman() {
   drawBox(150.0f, 205.0f, 0.0f);
@@ -167,32 +180,34 @@ void drawSnowman() {
 }
 
 /**
- * Timer Handler animates the snowflakes to move downward. It adds a second snowflake
- * when the first one reaches halfway. When the animation is paused it returns.
+ * Timer Handler animates the snowflakes to move downward amd rightward. 
+ * It adds a second snowflake when the first one reaches halfway. 
+ * When the animation is paused it returns without updating the x and y coordinates
+ * of the snowflakes.
  * 
  * @param val Integer Used to determine which time event to envoke.
  */
 void timerHandler(int val) {
   if (isPaused) {
-    // Skip the animation updates if paused
+    // Skips the animation updates if paused
     return;
   } 
 
-  // Move first snowflake
+  // Moves first snowflake
   if (centerY > 20.0f) { 
       centerY -= SNOWFLAKE_MOVE_DOWN;  
       centerX += SNOWFLAKE_MOVE_RIGHT;
   } else {
-      centerY = 578.0f; // Reset to top
+      centerY = 578.0f; // Resets to top
       centerX = 15.0f;
   }
 
-  // Activate second snowflake when first is halfway
+  // Activates second snowflake when first is halfway
   if (centerY < 300.0f) {
       secondSnowflakeActive = true;
   }
 
-  // Move second snowflake
+  // Moves second snowflake
   if (secondSnowflakeActive) {
       if (centerYSecond > 20.0f) {
           centerYSecond -= SNOWFLAKE_MOVE_DOWN;
