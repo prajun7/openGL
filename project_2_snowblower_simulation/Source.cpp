@@ -126,28 +126,31 @@ void drawSnowman() {
   drawBox(60.0f, 250.0f, 260.0f);
 
   glBegin(GL_LINES);
-    
     // Left Arm (diagonal upward-left)
     glVertex3f(225, 205, 0.0f);  // Start from the middle of the second box
     glVertex3f(197, 233, 0.0f);  // 40 units upward-left
 
-    // Left fingers
+    // Left fingers (smaller, pointing at 45-degree angles outward)
+    // Finger 1 (Upward-left)
     glVertex3f(197, 233, 0.0f);
-    glVertex3f(191, 239, 0.0f);  // Upward branch
+    glVertex3f(183, 253, 0.0f);  // 20 units outward-left (at a 45-degree angle)
 
+    // Finger 2 (Downward-left)
     glVertex3f(197, 233, 0.0f);
-    glVertex3f(193, 226, 0.0f);  // Downward branch
+    glVertex3f(213, 253, 0.0f);  // 20 units outward-right (at a 45-degree angle)
 
     // Right Arm (diagonal upward-right)
     glVertex3f(335, 205, 0.0f);  // Start from the middle of the second box
     glVertex3f(363, 233, 0.0f);  // 40 units upward-right
 
-    // Right fingers
+    // Right fingers (smaller, pointing at 45-degree angles outward)
+    // Finger 1 (Upward-right)
     glVertex3f(363, 233, 0.0f);
-    glVertex3f(369, 237, 0.0f);  // Upward branch
+    glVertex3f(377, 253, 0.0f);  // 20 units outward-right (at a 45-degree angle)
 
+    // Finger 2 (Downward-right)
     glVertex3f(363, 233, 0.0f);
-    glVertex3f(367, 242, 0.0f);  // Downward branch
+    glVertex3f(353, 253, 0.0f);  // 20 units outward-left (at a 45-degree angle)
   glEnd();
 
   // Nose (cone pointing right)
