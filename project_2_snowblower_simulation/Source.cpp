@@ -53,8 +53,10 @@ GLuint snowmanListIdx;
 
 bool animationStarted = false;
 
-// Tracks the progress of the first snowflake
 bool secondSnowflakeActive = false;
+
+// Tracks if the animation is paused or not
+bool isPaused = false;
 
 // Maximum number of times the snowblower can be activated.
 int snowBlowerRemainingCount = 20;
@@ -134,6 +136,11 @@ void drawSnowman() {
  * Timer function to animate both snowflakes.
  */
 void timerHandler(int val) {
+  if (isPaused) {
+    // Skip the animation updates if paused
+    return;
+  } 
+
   // Move first snowflake
   if (centerY > 20) { 
       centerY -= SNOWFLAKE_MOVE_DOWN;  // Moves down
@@ -177,6 +184,11 @@ void mouseHandler(int button, int state, int x, int y) {
   }
 }
 
+void resumeAnimation(int val) {
+  isPaused = false;
+  glutTimerFunc(66, timerHandler, 1);
+}
+
 void keyboardHandler(unsigned char key, int x, int y) {
   if ((key == 'b' || key == 'B') && snowBlowerRemainingCount > 0) {
       // Displace snowflakes (if within the vertical range 200 to 400) rightward by 4 units.
@@ -188,6 +200,14 @@ void keyboardHandler(unsigned char key, int x, int y) {
       }
       snowBlowerRemainingCount--;  // Decrement the activations counter.
       glutPostRedisplay();
+  }
+
+  // Pause the animation if 'p' is pressed
+  if (key == 'p' || key == 'P') {
+    if (!isPaused) {
+        isPaused = true;
+        glutTimerFunc(1000, resumeAnimation, 0);  // Resume after 1 second
+    }
   }
 }
 
@@ -246,14 +266,14 @@ void displayHandler()
   for (int i = 0; i < strlen(numStr); i++) {
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, numStr[i]);
   }
-  
+
   glutSwapBuffers(); 
 }
 
 #define canvas_Width 600
 #define canvas_Height 600
 
-char canvas_Name[] = "Snoowblower Simulation";
+char canvas_Name[] = "Snowblower Simulation";
 
 int main(int argc, char ** argv)
 {
