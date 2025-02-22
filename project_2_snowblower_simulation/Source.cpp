@@ -42,9 +42,6 @@ float centerX = 15;
 // Other snowflakes start with the left tips 100 units from the left edge screen
 float centerXSecond = 100 + 15;
 
-// Maximum number of times the snowblower can be activated.
-int remainingActivations = 20;
-
 // Display list idx for "Any Mouse Click Will Start" message
 GLuint startMessageListIdx;
 
@@ -59,6 +56,7 @@ bool animationStarted = false;
 // Tracks the progress of the first snowflake
 bool secondSnowflakeActive = false;
 
+// Maximum number of times the snowblower can be activated.
 int snowBlowerRemainingCount = 20;
 
 /**
@@ -180,7 +178,7 @@ void mouseHandler(int button, int state, int x, int y) {
 }
 
 void keyboardHandler(unsigned char key, int x, int y) {
-  if ((key == 'b' || key == 'B') && remainingActivations > 0) {
+  if ((key == 'b' || key == 'B') && snowBlowerRemainingCount > 0) {
       // Displace snowflakes (if within the vertical range 200 to 400) rightward by 4 units.
       if (centerY >= 200 && centerY <= 400) {
           centerX += 4.0f;
@@ -188,7 +186,7 @@ void keyboardHandler(unsigned char key, int x, int y) {
       if (secondSnowflakeActive && centerYSecond >= 200 && centerYSecond <= 400) {
           centerXSecond += 4.0f;
       }
-      remainingActivations--;  // Decrement the activations counter.
+      snowBlowerRemainingCount--;  // Decrement the activations counter.
       glutPostRedisplay();
   }
 }
