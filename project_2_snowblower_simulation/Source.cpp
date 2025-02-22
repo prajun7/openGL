@@ -126,32 +126,32 @@ void drawSnowman() {
   drawBox(60.0f, 250.0f, 260.0f);
 
   glBegin(GL_LINES);
-    // Left Arm (diagonal upward-left)
-    glVertex3f(225, 205, 0.0f);  // Start from the middle of the second box
-    glVertex3f(197, 233, 0.0f);  // 40 units upward-left
+  // Left Arm (diagonal upward-left)
+  glVertex3f(225, 205, 0.0f);  // Start from the middle of the second box
+  glVertex3f(197, 233, 0.0f);  // 40 units upward-left
 
-    // Left fingers (smaller, pointing at 45-degree angles outward)
-    // Finger 1 (Upward-left)
-    glVertex3f(197, 233, 0.0f);
-    glVertex3f(183, 253, 0.0f);  // 20 units outward-left (at a 45-degree angle)
+  // Left fingers (smaller, pointing at 45-degree angles outward)
+  // Finger 1 (Upward-left)
+  glVertex3f(197, 233, 0.0f);
+  glVertex3f(183, 253, 0.0f);  // 20 units outward-left (at a 45-degree angle)
 
-    // Finger 2 (Downward-left)
-    glVertex3f(197, 233, 0.0f);
-    glVertex3f(213, 253, 0.0f);  // 20 units outward-right (at a 45-degree angle)
+  // Finger 2 (Downward-left) at a 45-degree angle from the upward left
+  glVertex3f(197, 233, 0.0f);
+  glVertex3f(197 - 20, 233 - 20, 0.0f);  // 20 units downward-left at a 45-degree angle
 
-    // Right Arm (diagonal upward-right)
-    glVertex3f(335, 205, 0.0f);  // Start from the middle of the second box
-    glVertex3f(363, 233, 0.0f);  // 40 units upward-right
+  // Right Arm (diagonal upward-right)
+  glVertex3f(335, 205, 0.0f);  // Start from the middle of the second box
+  glVertex3f(363, 233, 0.0f);  // 40 units upward-right
 
-    // Right fingers (smaller, pointing at 45-degree angles outward)
-    // Finger 1 (Upward-right)
-    glVertex3f(363, 233, 0.0f);
-    glVertex3f(377, 253, 0.0f);  // 20 units outward-right (at a 45-degree angle)
+  // Right fingers (smaller, pointing at 45-degree angles outward)
+  // Finger 1 (Upward-right)
+  glVertex3f(363, 233, 0.0f);
+  glVertex3f(377, 253, 0.0f);  // 20 units outward-right (at a 45-degree angle)
 
-    // Finger 2 (Downward-right)
-    glVertex3f(363, 233, 0.0f);
-    glVertex3f(353, 253, 0.0f);  // 20 units outward-left (at a 45-degree angle)
-  glEnd();
+  // Finger 2 (Downward-right) rotated 180 degrees (flipping horizontally) and at 45-degree angle
+  glVertex3f(363, 233, 0.0f);
+  glVertex3f(363 + 20, 233 - 20, 0.0f);  // 20 units downward-right at a 45-degree angle
+glEnd();
 
   // Nose (cone pointing right)
   glColor3f(1.0f, 0.5f, 0.0f); // Orange color for the nose
