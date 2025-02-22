@@ -36,7 +36,7 @@
 #include "OpenGL445Setup-2025.h"
 #include <string>
 
-const float SNOWFLAKE_MOVE_DOWN = 10.0f;
+const float SNOWFLAKE_MOVE_DOWN = 6.0f;
 const float SNOWFLAKE_MOVE_RIGHT = 2.0f;
 
 const float SNOWFLAKE_LENGTH = 60.0f;
@@ -220,7 +220,7 @@ void timerHandler(int val) {
   }
 
   glutPostRedisplay();
-  glutTimerFunc(66, timerHandler, 1);
+  glutTimerFunc(33, timerHandler, 1);
 }
 
 /**
@@ -233,7 +233,7 @@ void mouseHandler(int button, int state, int x, int y) {
 
         // Should be inside the if-block so that the multiple mouse click
         // won't keep triggering the timerHandler.
-        glutTimerFunc(66, timerHandler, 1);
+        glutTimerFunc(33, timerHandler, 1);
       }
   }
 }
@@ -244,7 +244,7 @@ void mouseHandler(int button, int state, int x, int y) {
  */
 void resumeAnimation(int val) {
   isPaused = false;
-  glutTimerFunc(66, timerHandler, 1);
+  glutTimerFunc(33, timerHandler, 1);
 }
 
 /**
