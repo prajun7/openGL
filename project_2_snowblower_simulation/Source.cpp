@@ -59,6 +59,8 @@ bool animationStarted = false;
 // Tracks the progress of the first snowflake
 bool secondSnowflakeActive = false;
 
+int snowBlowerRemainingCount = 20;
+
 /**
 * Draws a snowflake with a horizontal main line with diagonal lines at ±60 degrees 
 * relative to the horizontal axis
@@ -209,7 +211,7 @@ void initDisplayList() {
   glEndList();
 
   remainingMessageListIdx = glGenLists(3);  
-  glNewList(startMessageListIdx, GL_COMPILE);
+  glNewList(remainingMessageListIdx, GL_COMPILE);
     glRasterPos2i(450, 580);
     const char* remainingMsg = "Remaining ";
     for (const char* c = remainingMsg; *c != '\0'; c++) {
@@ -237,14 +239,13 @@ void displayHandler()
     drawSnowFlake(centerXSecond, centerYSecond);
   }
 
-  glCallList(startMessageListIdx);
-
   // Call display list for static text
   glCallList(remainingMessageListIdx);
 
-  glRasterPos2i(540, 580); // Position next to "Remaining: "
-  std::string numStr = std::to_string(remainingActivations);
-  for (size_t i = 0; i < numStr.length(); i++) {
+  glRasterPos2i(540, 580);
+  char numStr[20]; 
+  snprintf(numStr, sizeof(numStr), "%d", snowBlowerRemainingCount);
+  for (int i = 0; i < strlen(numStr); i++) {
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, numStr[i]);
   }
   glFlush(); 
