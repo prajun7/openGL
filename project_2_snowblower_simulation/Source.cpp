@@ -17,9 +17,7 @@
  * for snowman, and three different messages. The `initDisplayLists` is called in the main function.
  * Compared to Program 1, I no longer use a `clearSnowFlake` method to clear the snowflakes, and I do not 
  * draw the snowman or snowflakes in the `timerHandler`. Instead, I use `glutPostRedisplay()` to request a new draw.
- * Additionally, I changed `glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB)` to `glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)`
- * in the `OpenGL445Setup-2025.h` file to enable double buffering, which effectively eliminates screen 
- * flickering in static content.
+ * The display list is used to draw the snowman and other static texts.
  * 
  * EXTRA CREDIT ARCHITECTURE
  * The `drawSnowman` function renders a snowman with a carrot nose and stick arms. The 'snowBlowerRemainingCount'
@@ -102,7 +100,6 @@ void drawSnowFlake(float centerX, float centerY) {
       glVertex3f(centerX + 15.0f, centerY - 25.98f, 0.0f);
 
     glEnd();
-    glFlush();
 }
 
 /**
@@ -132,7 +129,6 @@ void drawBox(float length, float x_start, float y_start) {
     glVertex3f(x_start, y_start + length, 0.0f);
     glVertex3f(x_start, y_start, 0.0f);
   glEnd();
-  glFlush();
 }
 
 /**
@@ -337,7 +333,7 @@ void displayHandler()
   }
 
   glCallList(remainingMessageListIdx);
-
+  
   glRasterPos2i(540, 580);
   char numStr[20]; 
   snprintf(numStr, sizeof(numStr), "%d", snowBlowerRemainingCount);
@@ -345,7 +341,7 @@ void displayHandler()
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, numStr[i]);
   }
 
-  glutSwapBuffers(); 
+  glFlush(); 
 }
 
 #define canvas_Width 600
