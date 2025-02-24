@@ -10,14 +10,14 @@
  * GLUT event-driven generation of a canvas with a 3 boxed snowman, animated snowflakes and a snowblower.
  * Canvas is produced via the display event handler, which is in `displayHandler`, which calls the series of 
  * display lists to draw text on the screen using `GLUT_BITMAP` and draws the snowman using the `drawSnowman` 
- * function. The `timerHandler` updates the position of the snowflakes and uses 66 ms as the time interval
- * to achieve an animation running at approximately 16 Frame per second(FPS). The `keyboardHandler` detects 
+ * function. The `timerHandler` updates the position of the snowflakes and uses 33 ms as the time interval
+ * to achieve an animation running at approximately 30 Frame per second(FPS). The `keyboardHandler` detects 
  * the keyboard press to activate the snowblower, while the`mouseHandler` detects the mouse click to start 
  * the animation. The `initDisplayLists` initiates the four displayLists to record a set of drawing commands 
  * for snowman, and three different messages. The `initDisplayLists` is called in the main function.
  * Compared to Program 1, I no longer use a `clearSnowFlake` method to clear the snowflakes, and I do not 
- * draw the snowman or snowflakes in the `timerHandler`. Instead, I use `glutPostRedisplay()` to request a new draw.
- * The display list is used to draw the snowman and other static texts.
+ * draw the snowman or snowflakes in the `timerHandler`. Instead, I use `glutPostRedisplay()` to request a 
+ * new draw. The display list is used to draw the snowman and other static texts.
  * 
  * EXTRA CREDIT ARCHITECTURE
  * The `drawSnowman` function renders a snowman with a carrot nose and stick arms. The 'snowBlowerRemainingCount'
@@ -32,7 +32,7 @@
 #include <GL/freeglut.h> 
 #include <stdio.h>
 #include "OpenGL445Setup-2025.h"
-#include <string>
+#include <cstring>
 
 const float SNOWFLAKE_MOVE_DOWN = 6.0f;
 const float SNOWFLAKE_MOVE_RIGHT = 2.0f;
@@ -223,14 +223,14 @@ void timerHandler(int val) {
  * Mouse click handler triggers the animation using glutTimerFunc.
  */
 void mouseHandler(int button, int state, int x, int y) {
-  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+  if (state == GLUT_DOWN) {       // Any mouse button click
     if (!animationStarted) {
-        animationStarted = true; 
+      animationStarted = true; 
 
-        // Should be inside the if-block so that the multiple mouse click
-        // won't keep triggering the timerHandler.
-        glutTimerFunc(33, timerHandler, 1);
-      }
+      // Should be inside the if-block so that the multiple mouse click
+      // won't keep triggering the timerHandler.
+      glutTimerFunc(33, timerHandler, 1);
+  }
   }
 }
 
@@ -337,7 +337,7 @@ void displayHandler()
   glRasterPos2i(540, 580);
   char numStr[20]; 
   snprintf(numStr, sizeof(numStr), "%d", snowBlowerRemainingCount);
-  for (int i = 0; i < strlen(numStr); i++) {
+  for (size_t i = 0; i < strlen(numStr); i++) {
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, numStr[i]);
   }
 
