@@ -12,9 +12,11 @@ GLuint diamondList;
 // Display list index to draw the landing zone.
 GLuint landingZoneList;
 
-// Global variable for the diamond's vertical position.
-// Starting at 575 (as in your original translation).
+// Diamond's vertical position.
 float diamond_y = 575.0f;
+
+// Diamond's horizontal position.
+float diamond_x = 400.0f;
 
 float diamond_initial_y = 575.0f;   // Starting position (used when simulation begins).
 
@@ -101,7 +103,7 @@ void displayHandler() {
     glLoadIdentity();
     
     glPushMatrix();
-      glTranslatef(400.0f, diamond_y, -50.0f);
+      glTranslatef(diamond_x, diamond_y, -50.0f);
       glCallList(diamondList);
     glPopMatrix();
 
@@ -119,6 +121,7 @@ void timerFunction(int value) {
   if (simulation_started) {
       simulation_time += dt;
       // Compute the new vertical position using: p(t) = p0 + 0.5 * a * t^2.
+      // Since the diamond falls from the rest, the initial velocity is 0
       diamond_y = diamond_initial_y + 0.5f * gravity * (simulation_time * simulation_time);
   }
   
@@ -139,13 +142,24 @@ void keyboardHandler(unsigned char key, int x, int y) {
       simulation_time = 0.0f;
       diamond_initial_y = diamond_y; 
     }
-
     if (key == 'i' || key == 'I') {
       gravity = IO_GRAVITY;
       simulation_started = true;
       simulation_time = 0.0f;
       diamond_initial_y = diamond_y;
     }
+  }
+  
+  // Process left/right/up movement regardless of simulation state.
+  if (key == 'h' || key == 'H') {
+      diamond_x -= 4.0f;   // Move left 4 units
+  }
+  if (key == 'j' || key == 'J') {
+      diamond_x += 4.0f;   // Move right 4 units
+  }
+  if (key == 'u' || key == 'U') {
+      diamond_y += 5.0f;   // Move upward 5 units immediately
+      diamond_initial_y += 5.0f; // Update initial position for continuous gravity simulation.
   }
 }
 
