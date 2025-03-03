@@ -16,8 +16,15 @@ GLuint landingZoneList;
 // Starting at 575 (as in your original translation).
 float diamond_y = 575.0f;
 
-// Drop speed per frame (adjust as needed).
-const float drop_speed = 5.0f;
+float diamond_initial_y = 575.0f;   // Starting position (used when simulation begins).
+
+bool simulation_started = false;
+float simulation_time = 0.0f;       // Time (in seconds) since the drop started.
+float gravity = 0.0f;               // Current gravity acceleration (ft/s^2).
+
+// Gravity constants (in ft/s^2; negative means downward acceleration).
+const float MOON_GRAVITY = -5.31f;  // Our Moon's gravity.
+const float IO_GRAVITY   = -5.9f;   // Io's gravity constant.
 
 // Frame interval in milliseconds for 20 fps (1000ms / 20 = 50ms).
 const int frame_interval = 50;
@@ -107,18 +114,39 @@ void displayHandler() {
  * It moves the diamond downward and triggers a redisplay.
  */
 void timerFunction(int value) {
-    // Move the diamond downward by subtracting drop_speed from the y-position.
-    diamond_y -= drop_speed;
+  float dt = frame_interval / 1000.0f; // Convert frame interval to seconds.
+  
+  if (simulation_started) {
+      simulation_time += dt;
+      // Compute the new vertical position using: p(t) = p0 + 0.5 * a * t^2.
+      diamond_y = diamond_initial_y + 0.5f * gravity * (simulation_time * simulation_time);
+  }
+  
+  glutPostRedisplay();
+  glutTimerFunc(frame_interval, timerFunction, 1);
+}
 
-    // Optional: Reset position if the diamond goes off screen.
-    if (diamond_y < 0)
-        diamond_y = canvas_Height;  // Reset to the top of the canvas.
+/**
+ * Keyboard Handler triggers the animation when the key `M` or `I` is pressed.
+ * When the key `M` is pressed it uses moon's gravity and when `I` is pressed it uses
+ * Io's gravity.
+ */
+void keyboardHandler(unsigned char key, int x, int y) {
+  if (!simulation_started) {
+    if (key == 'm' || key == 'M') {
+      gravity = MOON_GRAVITY;
+      simulation_started = true;
+      simulation_time = 0.0f;
+      diamond_initial_y = diamond_y; 
+    }
 
-    // Mark the current window as needing to be redisplayed.
-    glutPostRedisplay();
-
-    // Reset the timer for the next frame.
-    glutTimerFunc(frame_interval, timerFunction, 1);
+    if (key == 'i' || key == 'I') {
+      gravity = IO_GRAVITY;
+      simulation_started = true;
+      simulation_time = 0.0f;
+      diamond_initial_y = diamond_y;
+    }
+  }
 }
 
 char canvas_Name[] = "Diamond Drop";
@@ -129,6 +157,9 @@ int main(int argc, char ** argv) {
 
     // Register the display handler.
     glutDisplayFunc(displayHandler);
+
+    glutDisplayFunc(displayHandler);
+    glutKeyboardFunc(keyboardHandler);
 
     // Create the display list for the diamond.
     initDisplayList();
