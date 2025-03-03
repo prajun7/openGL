@@ -57,6 +57,8 @@ float dustTimer = 0.0f; // Accumulates time for new dust particle creation
 // Frame interval in milliseconds for 20 fps (1000ms / 20 = 50ms).
 const int frame_interval = 50;
 
+bool wind_enabled = false; // Wind effect is initially disabled
+
 void drawDiamond() {
   // For UAH's blue color with hex code #0077C8.
   // Hex Breakdown:
@@ -230,6 +232,11 @@ void timerFunction(int value) {
     // Since the diamond falls from the rest, the initial velocity is 0
     diamond_y = diamond_initial_y + 0.5f * gravity * (simulation_time * simulation_time);
 
+    // Apply wind effect: displace right by 4 units if between 200 and 300 units above ground
+    if (wind_enabled && diamond_y >= 200.0f && diamond_y <= 300.0f) {
+      diamond_x += 4.0f;
+    }
+
     float tip_x = diamond_x;
     float tip_y = diamond_y - 25.0f;  
 
@@ -276,9 +283,16 @@ void timerFunction(int value) {
 }
 
 /**
- * Keyboard Handler triggers the animation when the key `M` or `I` is pressed.
- * When the key `M` is pressed it uses moon's gravity and when `I` is pressed it uses Io's gravity.
- * The key 'H', 'J' and 'U' are used to move the diamond to left, right and up respectively
+ * Handles keyboard input to control the animation and movement of the diamond.
+ *
+ * Controls:
+ * - Press 'M' to apply the Moon's gravity.
+ * - Press 'I' to apply Io's gravity.
+ * - Press 'H' to move the diamond left.
+ * - Press 'J' to move the diamond right.
+ * - Press 'U' to move the diamond up.
+ * - Press 'W' to enable the wind effect.
+ * - Press 'D' to disable the wind effect.
  */
 void keyboardHandler(unsigned char key, int x, int y) {
   if (!simulation_started) {
@@ -311,6 +325,14 @@ void keyboardHandler(unsigned char key, int x, int y) {
           fuel -= 5; 
       }
     }
+  }
+
+  // Toggle wind effect with 'W' (enable) and 'D' (disable)
+  if (key == 'w' || key == 'W') {
+    wind_enabled = true;
+  }
+  if (key == 'd' || key == 'D') {
+    wind_enabled = false;
   }
 }
 
