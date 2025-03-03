@@ -43,12 +43,15 @@ void drawDiamond() {
 }
 
 void drawLandingZone() {
+
+  // 10 units = 10% of 600 = 60
+  // 40 units = 40% of 800 = 320
   glColor3f(0.0f, 0.467f, 0.784f);
   glBegin(GL_LINE_LOOP);
       glVertex3f(10.0f, 0.0f, -50.0f);   
-      glVertex3f(60.0f, 0.0f, -50.0f);  
-      glVertex3f(60.0f, 10.0f, -50.0f);  
-      glVertex3f(10.0f, 10.0f, -50.0f);  
+      glVertex3f(340.0f, 0.0f, -50.0f);  
+      glVertex3f(340.0f, 60.0f, -50.0f);  
+      glVertex3f(10.0f, 60.0f, -50.0f);  
   glEnd();
 }
 
