@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "OpenGL445Setup-2025.h"
 #include <cstring>
+#include <vector>
 
 #define canvas_Width 800
 #define canvas_Height 600
@@ -42,6 +43,16 @@ float gravity = 0.0f;               // Current gravity acceleration (ft/s^2).
 // Gravity constants (in ft/s^2; negative means downward acceleration).
 const float MOON_GRAVITY = -5.31f;  // Our Moon's gravity.
 const float IO_GRAVITY   = -5.9f;   // Io's gravity constant.
+
+// Struct to represent a dust particle
+struct DustParticle {
+  float x;
+  float y;
+};
+
+std::vector<DustParticle> dustParticles; // Stores all active dust particles
+
+float dustTimer = 0.0f; // Accumulates time for new dust particle creation
 
 // Frame interval in milliseconds for 20 fps (1000ms / 20 = 50ms).
 const int frame_interval = 50;
@@ -173,6 +184,15 @@ void displayHandler() {
     // Draw the Landing Zone
     glCallList(landingZoneList);
 
+    // Draw dust particles (each as a 3-unit long horizontal gray line)
+    glColor3f(0.5f, 0.5f, 0.5f); // Gray color
+    glBegin(GL_LINES);
+      for (size_t i = 0; i < dustParticles.size(); i++) {
+          glVertex3f(dustParticles[i].x, dustParticles[i].y, -50.0f);
+          glVertex3f(dustParticles[i].x + 3.0f, dustParticles[i].y, -50.0f);
+      }
+    glEnd();
+
     glColor3f(0.0f, 0.0f, 0.0f);
 
     // Draw the Fuel text
@@ -201,7 +221,8 @@ void displayHandler() {
  * It moves the diamond downward and triggers a redisplay.
  */
 void timerFunction(int value) {
-  float dt = frame_interval / 1000.0f; // Convert frame interval to seconds.
+  float dt = frame_interval / 1000.0f; // Convert frame interval to seconds
+  dustTimer += dt;
   
   if (simulation_started) {
     simulation_time += dt;
@@ -226,6 +247,27 @@ void timerFunction(int value) {
       diamond_y = 32.0f;  // 7 + 25
       simulation_started = false;
       simulation_time = 0.0f;
+    }
+
+    // Create a new dust particle every 600 milliseconds
+    if (dustTimer >= 0.6f) {
+      DustParticle newParticle;
+      newParticle.x = 0.0f;
+      newParticle.y = 200.0f + (rand() % 101); // Random y between 200 and 300
+      dustParticles.push_back(newParticle);
+      dustTimer -= 0.6f;
+    }
+
+    // Update dust particles: move right by 4 units
+    for (size_t i = 0; i < dustParticles.size(); ++i) {
+        dustParticles[i].x += 4.0f;
+    }
+
+    // Remove particles that are off-screen (x >= 800)
+    for (int i = dustParticles.size() - 1; i >= 0; --i) {
+        if (dustParticles[i].x >= 800.0f) {
+            dustParticles.erase(dustParticles.begin() + i);
+        }
     }
   }
   
