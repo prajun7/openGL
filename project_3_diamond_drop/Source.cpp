@@ -23,6 +23,18 @@ GLuint fuelLabelList;
 // Display list index for the "Fuel" label.
 GLuint youWinLabelList; 
 
+// Display list index for "Press 'W' to enable the wind effect" message
+GLuint enableWindEffectMessagelList; 
+
+// Display list index for "Press 'D' to disable the wind effect" message
+GLuint disableWindEffectMessagelList; 
+
+// Flag to show the wind toggle message
+bool showWindMessage = false;
+
+// Timer to control message display duration
+float windMessageTimer = 0.0f;
+
 // Starting fuel value.
 int fuel = 200; 
 
@@ -160,6 +172,24 @@ void initDisplayList() {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, youWinLabel[i]);
     }
   glEndList();
+
+  // Wind enable message display list
+  enableWindEffectMessagelList = glGenLists(6);
+  glNewList(enableWindEffectMessagelList, GL_COMPILE);
+    const char* windEnableMsg = "Press 'W' to enable wind effect";
+    for (size_t i = 0; i < strlen(windEnableMsg); i++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, windEnableMsg[i]);
+    }
+  glEndList();
+
+  // Wind disable message display list
+  disableWindEffectMessagelList = glGenLists(7);
+  glNewList(disableWindEffectMessagelList, GL_COMPILE);
+    const char* windDisableMsg = "Press 'D' to disable wind effect";
+    for (size_t i = 0; i < strlen(windDisableMsg); i++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, windDisableMsg[i]);
+    }
+  glEndList();
 }
 
 /**
@@ -214,6 +244,15 @@ void displayHandler() {
       glRasterPos2i((canvas_Width / 2) - 50, canvas_Height / 2);
       glCallList(youWinLabelList);
     }
+
+    // Display wind toggle message at center for 1.5 seconds
+    if (showWindMessage) {
+      glRasterPos2i((canvas_Width / 2) - 117, 310); 
+      glCallList(enableWindEffectMessagelList);
+
+      glRasterPos2i((canvas_Width / 2) - 122, 290); 
+      glCallList(disableWindEffectMessagelList);
+    }
     
     glFlush();
 }
@@ -225,6 +264,15 @@ void displayHandler() {
 void timerFunction(int value) {
   float dt = frame_interval / 1000.0f; // Convert frame interval to seconds
   dustTimer += dt;
+
+  // Update wind message timer
+  if (showWindMessage) {
+    windMessageTimer += dt;
+    if (windMessageTimer >= 1.5f) {
+      showWindMessage = false;
+      windMessageTimer = 0.0f;
+    }
+  }
   
   if (simulation_started) {
     simulation_time += dt;
@@ -301,12 +349,16 @@ void keyboardHandler(unsigned char key, int x, int y) {
       simulation_started = true;
       simulation_time = 0.0f;
       diamond_initial_y = diamond_y; 
+      showWindMessage = true; 
+      windMessageTimer = 0.0f;
     }
     if (key == 'i' || key == 'I') {
       gravity = IO_GRAVITY;
       simulation_started = true;
       simulation_time = 0.0f;
       diamond_initial_y = diamond_y;
+      showWindMessage = true;
+      windMessageTimer = 0.0f;
     }
   }
 
