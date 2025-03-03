@@ -16,6 +16,9 @@ GLuint landingZoneList;
 // Display list index for the "Fuel" label.
 GLuint fuelLabelList; 
 
+// Display list index for the "Fuel" label.
+GLuint youWinLabelList; 
+
 // Starting fuel value.
 int fuel = 200; 
 
@@ -86,22 +89,42 @@ void drawLandingZone() {
   glEnd();
 }
 
+bool isPointInsideLandingDip(float pointX, float pointY) {
+  // The landing dip is defined by vertices: (115,50), (165,50), (140,25)
+  // Check if pointY is within the vertical range of the triangle.
+  if (pointY < 25.0f || pointY > 50.0f) {
+      return false;
+  }
+  // Compute horizontal boundaries based on pointY.
+  float leftBoundary  = 115.0f + (50.0f - pointY);  // From (115,50) to (140,25)
+  float rightBoundary = 165.0f - (50.0f - pointY);   // From (165,50) to (140,25)
+  return (pointX >= leftBoundary && pointX <= rightBoundary);
+}
+
 void initDisplayList() {
   diamondList = glGenLists(1);
   glNewList(diamondList, GL_COMPILE);
     drawDiamond();   
   glEndList();
 
-  landingZoneList=glGenLists(2);
+  landingZoneList = glGenLists(2);
     glNewList(landingZoneList, GL_COMPILE);
     drawLandingZone();   
   glEndList();
 
-  fuelLabelList = glGenLists(1);
+  fuelLabelList = glGenLists(3);
   glNewList(fuelLabelList, GL_COMPILE);
     const char* fuelLabel = "Fuel";
     for (size_t i = 0; i < strlen(fuelLabel); i++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, fuelLabel[i]);
+    }
+  glEndList();
+
+  youWinLabelList = glGenLists(4);
+  glNewList(youWinLabelList, GL_COMPILE);
+    const char* youWinLabel = "YOU WIN";
+    for (size_t i = 0; i < strlen(youWinLabel); i++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, youWinLabel[i]);
     }
   glEndList();
 }
@@ -126,8 +149,9 @@ void displayHandler() {
 
     glCallList(landingZoneList);
 
-    // Draw the "Fuel" label.
     glColor3f(0.0f, 0.0f, 0.0f);
+
+    // Draw the "Fuel" label.
     glRasterPos2i(740, 570);
     glCallList(fuelLabelList);
 
@@ -138,20 +162,14 @@ void displayHandler() {
     for (size_t i = 0; i < strlen(fuelStr); i++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, fuelStr[i]);
     }
+
+    // Check if the diamond has landed successfully.
+    if (isPointInsideLandingDip(diamond_x, diamond_y - 25.0f)) {
+      glRasterPos2i((canvas_Width / 2) - 50, canvas_Height / 2);
+      glCallList(youWinLabelList);
+    }
     
     glFlush();
-}
-
-bool isPointInsideLandingDip(float pointX, float pointY) {
-  // The landing dip is defined by vertices: (115,50), (165,50), (140,25)
-  // Check if pointY is within the vertical range of the triangle.
-  if (pointY < 25.0f || pointY > 50.0f) {
-      return false;
-  }
-  // Compute horizontal boundaries based on pointY.
-  float leftBoundary  = 115.0f + (50.0f - pointY);  // From (115,50) to (140,25)
-  float rightBoundary = 165.0f - (50.0f - pointY);   // From (165,50) to (140,25)
-  return (pointX >= leftBoundary && pointX <= rightBoundary);
 }
 
 
