@@ -2,6 +2,7 @@
 #include <GL/freeglut.h> 
 #include <stdio.h>
 #include "OpenGL445Setup-2025.h"
+#include <cstring>
 
 #define canvas_Width 800
 #define canvas_Height 600
@@ -12,15 +13,23 @@ GLuint diamondList;
 // Display list index to draw the landing zone.
 GLuint landingZoneList;
 
+// Display list index for the "Fuel" label.
+GLuint fuelLabelList; 
+
+// Starting fuel value.
+int fuel = 200; 
+
 // Diamond's vertical position.
 float diamond_y = 575.0f;
 
 // Diamond's horizontal position.
 float diamond_x = 400.0f;
 
-float diamond_initial_y = 575.0f;   // Starting position (used when simulation begins).
+// Starting position (used when simulation begins).
+float diamond_initial_y = 575.0f;  
 
 bool simulation_started = false;
+
 float simulation_time = 0.0f;       // Time (in seconds) since the drop started.
 float gravity = 0.0f;               // Current gravity acceleration (ft/s^2).
 
@@ -87,6 +96,14 @@ void initDisplayList() {
     glNewList(landingZoneList, GL_COMPILE);
     drawLandingZone();   
   glEndList();
+
+  fuelLabelList = glGenLists(1);
+  glNewList(fuelLabelList, GL_COMPILE);
+    const char* fuelLabel = "Fuel";
+    for (size_t i = 0; i < strlen(fuelLabel); i++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, fuelLabel[i]);
+    }
+  glEndList();
 }
 
 /**
@@ -108,6 +125,20 @@ void displayHandler() {
     glPopMatrix();
 
     glCallList(landingZoneList);
+
+    // Draw the "Fuel" label.
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glRasterPos2i(740, 570);
+    glCallList(fuelLabelList);
+
+    // Draw the numeric fuel value below the label.
+    glRasterPos2i(740, 550);
+    char fuelStr[20];
+    snprintf(fuelStr, sizeof(fuelStr), "%d", fuel);
+    for (size_t i = 0; i < strlen(fuelStr); i++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, fuelStr[i]);
+    }
+    
     glFlush();
 }
 
@@ -131,8 +162,8 @@ void timerFunction(int value) {
 
 /**
  * Keyboard Handler triggers the animation when the key `M` or `I` is pressed.
- * When the key `M` is pressed it uses moon's gravity and when `I` is pressed it uses
- * Io's gravity.
+ * When the key `M` is pressed it uses moon's gravity and when `I` is pressed it uses Io's gravity.
+ * The key 'H', 'J' and 'U' are used to move the diamond to left, right and up respectively
  */
 void keyboardHandler(unsigned char key, int x, int y) {
   if (!simulation_started) {
@@ -150,16 +181,18 @@ void keyboardHandler(unsigned char key, int x, int y) {
     }
   }
   
-  // Process left/right/up movement regardless of simulation state.
   if (key == 'h' || key == 'H') {
-      diamond_x -= 4.0f;   // Move left 4 units
+      diamond_x -= 4.0f;   // Moves left 4 units
   }
   if (key == 'j' || key == 'J') {
-      diamond_x += 4.0f;   // Move right 4 units
+      diamond_x += 4.0f;   // Moves right 4 units
   }
   if (key == 'u' || key == 'U') {
-      diamond_y += 5.0f;   // Move upward 5 units immediately
-      diamond_initial_y += 5.0f; // Update initial position for continuous gravity simulation.
+    if (fuel > 0) {
+        diamond_y += 5.0f; 
+        diamond_initial_y += 5.0f; // For continuous gravity simulation.
+        fuel -= 5; 
+    }
   }
 }
 
