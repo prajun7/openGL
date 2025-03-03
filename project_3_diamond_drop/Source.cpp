@@ -142,6 +142,23 @@ void displayHandler() {
     glFlush();
 }
 
+  bool isPointInsideTriangle(float pointX, float pointY,
+    float triA_X, float triA_Y,
+    float triB_X, float triB_Y,
+    float triC_X, float triC_Y) {
+  // 'factor' is essentially a scaling factor derived from the triangle's area.
+  float factor = ((triB_Y - triC_Y) * (triA_X - triC_X) + (triC_X - triB_X) * (triA_Y - triC_Y));
+
+  // Compute barycentric weights for each vertex of the triangle.
+  float weightA = ((triB_Y - triC_Y) * (pointX - triC_X) + (triC_X - triB_X) * (pointY - triC_Y)) / factor;
+  float weightB = ((triC_Y - triA_Y) * (pointX - triC_X) + (triA_X - triC_X) * (pointY - triC_Y)) / factor;
+  float weightC = 1.0f - weightA - weightB;
+
+  // The point lies inside the triangle if all weights are nonnegative.
+  return (weightA >= 0.0f) && (weightB >= 0.0f) && (weightC >= 0.0f);
+  }
+
+
 /**
  * Timer callback to update the diamond's position.
  * It moves the diamond downward and triggers a redisplay.
@@ -154,6 +171,18 @@ void timerFunction(int value) {
       // Compute the new vertical position using: p(t) = p0 + 0.5 * a * t^2.
       // Since the diamond falls from the rest, the initial velocity is 0
       diamond_y = diamond_initial_y + 0.5f * gravity * (simulation_time * simulation_time);
+
+      float tip_x = diamond_x;
+      float tip_y = diamond_y - 25.0f;  
+
+      // Landing dip triangle vertices: A = (115, 50), B = (165, 50), C = (140, 25)
+    if (isPointInsideTriangle(tip_x, tip_y, 115.0f, 50.0f, 165.0f, 50.0f, 140.0f, 25.0f)) {
+      // Snap the diamond into perfect alignment inside the dip:
+      diamond_x = 140.0f;    // Center horizontally with the dip.
+      diamond_y = 50.0f;     // So that the lower tip (diamond_y - 25) becomes 25, matching the dip's bottom.
+      simulation_started = false;
+      simulation_time = 0.0f;
+    }
   }
   
   glutPostRedisplay();
@@ -180,18 +209,21 @@ void keyboardHandler(unsigned char key, int x, int y) {
       diamond_initial_y = diamond_y;
     }
   }
-  
-  if (key == 'h' || key == 'H') {
-      diamond_x -= 4.0f;   // Moves left 4 units
-  }
-  if (key == 'j' || key == 'J') {
-      diamond_x += 4.0f;   // Moves right 4 units
-  }
-  if (key == 'u' || key == 'U') {
-    if (fuel > 0) {
-        diamond_y += 5.0f; 
-        diamond_initial_y += 5.0f; // For continuous gravity simulation.
-        fuel -= 5; 
+
+  // Only move if the simulation has started
+  if (simulation_started) {
+    if (key == 'h' || key == 'H') {
+        diamond_x -= 4.0f;   // Moves left 4 units
+    }
+    if (key == 'j' || key == 'J') {
+        diamond_x += 4.0f;   // Moves right 4 units
+    }
+    if (key == 'u' || key == 'U') {
+      if (fuel > 0) {
+          diamond_y += 5.0f; 
+          diamond_initial_y += 5.0f; // For continuous gravity simulation.
+          fuel -= 5; 
+      }
     }
   }
 }
