@@ -196,7 +196,6 @@ void displayHandler() {
     glFlush();
 }
 
-
 /**
  * Timer callback to update the diamond's position.
  * It moves the diamond downward and triggers a redisplay.
@@ -205,21 +204,28 @@ void timerFunction(int value) {
   float dt = frame_interval / 1000.0f; // Convert frame interval to seconds.
   
   if (simulation_started) {
-      simulation_time += dt;
-      // Compute the new vertical position using: p(t) = p0 + 0.5 * a * t^2.
-      // Since the diamond falls from the rest, the initial velocity is 0
-      diamond_y = diamond_initial_y + 0.5f * gravity * (simulation_time * simulation_time);
+    simulation_time += dt;
+    // Compute the new vertical position using: p(t) = p0 + 0.5 * a * t^2.
+    // Since the diamond falls from the rest, the initial velocity is 0
+    diamond_y = diamond_initial_y + 0.5f * gravity * (simulation_time * simulation_time);
 
-      float tip_x = diamond_x;
-      float tip_y = diamond_y - 25.0f;  
+    float tip_x = diamond_x;
+    float tip_y = diamond_y - 25.0f;  
 
-      // Landing dip triangle vertices: A = (115, 50), B = (165, 50), C = (140, 25)
-      if (isPointInsideLandingDip(tip_x, tip_y)) {
-        // Snap the diamond into perfect alignment inside the dip:
-        diamond_x = 140.0f;    // Center horizontally with the dip.
-        diamond_y = 32.0f;     // So that the lower tip (diamond_y - 25) becomes 7, matching the dip's bottom.
-        simulation_started = false;
-        simulation_time = 0.0f;
+    // Landing dip triangle vertices: A = (115, 50), B = (165, 50), C = (140, 25)
+    if (isPointInsideLandingDip(tip_x, tip_y)) {
+      // Snap the diamond into perfect alignment inside the dip:
+      diamond_x = 140.0f;    // Center horizontally with the dip.
+      diamond_y = 32.0f;     // So that the lower tip (diamond_y - 25) becomes 7, matching the dip's bottom.
+      simulation_started = false;
+      simulation_time = 0.0f;
+    }
+
+    // Check if tip touches the red line (y=7).
+    if (tip_y <= 7.0f) {
+      diamond_y = 32.0f;  // 7 + 25
+      simulation_started = false;
+      simulation_time = 0.0f;
     }
   }
   
