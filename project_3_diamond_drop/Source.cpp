@@ -10,6 +10,9 @@
 // Display list index to draw a diamond.
 GLuint diamondList;
 
+// Display list index to draw bottom red line.
+GLuint bottomRedLineList;
+
 // Display list index to draw the landing zone.
 GLuint landingZoneList;
 
@@ -63,42 +66,54 @@ void drawDiamond() {
   glPopMatrix();
 }
 
+void drawBottomRedLine() 
+{
+  glColor3f(1.0f, 0.0f, 0.0f);
+  glBegin(GL_LINES);
+    glVertex3f(0.0f, 7.0f, -50.0f);
+    glVertex3f(canvas_Width, 7.0f, -50.0f);
+  glEnd();
+}
+
 void drawLandingZone() {
   // 10 units = 10% of 600 = 60
   // 40 units = 40% of 800 = 320
-  
-  glBegin(GL_LINE_LOOP);
-    // Bottom edge of the rectangle at y=0
-    glVertex3f(10.0f, 0.0f, -50.0f);     // Bottom-left
-    glVertex3f(270.0f, 0.0f, -50.0f);    // Bottom-right
+  glColor3f(0.0f, 0.467f, 0.784f);
 
-    // Right side of the rectangle (top edge at y=50)
-    glVertex3f(270.0f, 50.0f, -50.0f);   // Top-right corner
+  glBegin(GL_LINE_LOOP);
+    // Bottom edge of the rectangle 
+    glVertex3f(10.0f, 0.0f, -50.0f);     
+    glVertex3f(270.0f, 0.0f, -50.0f);
+
+    // Right side of the rectangle at y=32
+    glVertex3f(270.0f, 32.0f, -50.0f);   
 
     // Right edge of the dip (inner top)
-    glVertex3f(165.0f, 50.0f, -50.0f);   // Right edge of dip
+    glVertex3f(165.0f, 32.0f, -50.0f);   
 
-    // Triangular dip (25 units deep; bottom at y=7 so the dip touches the red line)
-    glVertex3f(140.0f, 7.0f, -50.0f);    // Bottom of the dip (center)
+    // Triangular dip bottom at y=7 (same as the red line at y=7)
+    glVertex3f(140.0f, 7.0f, -50.0f);    
 
     // Left edge of the dip (inner top)
-    glVertex3f(115.0f, 50.0f, -50.0f);   // Left edge of dip
+    glVertex3f(115.0f, 32.0f, -50.0f);   
 
-    // Left side of the rectangle (top edge at y=50)
-    glVertex3f(10.0f, 50.0f, -50.0f);    // Top-left corner
+    // Left side of the rectangle at y=32
+    glVertex3f(10.0f, 32.5f, -50.0f);    
   glEnd();
 }
 
 bool isPointInsideLandingDip(float pointX, float pointY) {
-  // Landing dip defined by vertices: (115,50), (165,50), (140,7)
-  if (pointY < 7.0f || pointY > 50.0f) {
+  // Landing dip defined by vertices: (115,32), (165,32), (140,7)
+  if (pointY < 7.0f || pointY > 32.0f) {
     return false;
-}
-// At y=50, boundaries are 115 and 165; at y=7, they converge at 140.
-float t = (50.0f - pointY) / 43.0f;  // 50 - 7 = 43
-float leftBoundary  = 115.0f + 25.0f * t;
-float rightBoundary = 165.0f - 25.0f * t;
-return (pointX >= leftBoundary && pointX <= rightBoundary);
+  }
+  // The total vertical distance is 32 - 7 = 25.
+  float t = (32.0f - pointY) / 25.0f;  // Goes from 0 at y=32 to 1 at y=7
+
+  float leftBoundary  = 115.0f + 25.0f * t;  // Moves from 115 to 140
+  float rightBoundary = 165.0f - 25.0f * t;  // Moves from 165 to 140
+
+  return (pointX >= leftBoundary && pointX <= rightBoundary);
 }
 
 void initDisplayList() {
@@ -107,12 +122,17 @@ void initDisplayList() {
     drawDiamond();   
   glEndList();
 
-  landingZoneList = glGenLists(2);
+  bottomRedLineList = glGenLists(2);
+  glNewList(bottomRedLineList, GL_COMPILE);
+    drawBottomRedLine();   
+  glEndList();
+
+  landingZoneList = glGenLists(3);
     glNewList(landingZoneList, GL_COMPILE);
     drawLandingZone();   
   glEndList();
 
-  fuelLabelList = glGenLists(3);
+  fuelLabelList = glGenLists(4);
   glNewList(fuelLabelList, GL_COMPILE);
     const char* fuelLabel = "Fuel";
     for (size_t i = 0; i < strlen(fuelLabel); i++) {
@@ -120,7 +140,7 @@ void initDisplayList() {
     }
   glEndList();
 
-  youWinLabelList = glGenLists(4);
+  youWinLabelList = glGenLists(5);
   glNewList(youWinLabelList, GL_COMPILE);
     const char* youWinLabel = "YOU WIN";
     for (size_t i = 0; i < strlen(youWinLabel); i++) {
@@ -134,7 +154,6 @@ void initDisplayList() {
  * The diamond's y-position is updated via the timer function.
  */
 void displayHandler() {
-    // Clear the color and depth buffers.
     glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -142,20 +161,25 @@ void displayHandler() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
+    // Draw the diamond
     glPushMatrix();
       glTranslatef(diamond_x, diamond_y, -50.0f);
       glCallList(diamondList);
     glPopMatrix();
 
+    // Draw the bottom Red line
+    glCallList(bottomRedLineList);
+
+    // Draw the Landing Zone
     glCallList(landingZoneList);
 
     glColor3f(0.0f, 0.0f, 0.0f);
 
-    // Draw the "Fuel" label.
+    // Draw the Fuel text
     glRasterPos2i(740, 570);
     glCallList(fuelLabelList);
 
-    // Draw the numeric fuel value below the label.
+    // Draw the numeric fuel value
     glRasterPos2i(740, 550);
     char fuelStr[20];
     snprintf(fuelStr, sizeof(fuelStr), "%d", fuel);
@@ -163,18 +187,11 @@ void displayHandler() {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, fuelStr[i]);
     }
 
-    // Check if the diamond has landed successfully.
+    // Draw the YOU WIN text
     if (isPointInsideLandingDip(diamond_x, diamond_y - 25.0f)) {
       glRasterPos2i((canvas_Width / 2) - 50, canvas_Height / 2);
       glCallList(youWinLabelList);
     }
-
-    // Draw a red line 7 pixels from the bottom
-    glColor3f(1.0f, 0.0f, 0.0f); // Red color
-    glBegin(GL_LINES);
-      glVertex3f(0.0f, 7.0f, -50.0f);
-      glVertex3f(canvas_Width, 7.0f, -50.0f);
-    glEnd();
     
     glFlush();
 }
