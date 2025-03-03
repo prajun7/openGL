@@ -1,3 +1,5 @@
+# Diamond Drop
+
 # OpenGL Project Setup on macOS
 
 To successfully run this project, follow the steps below. This guide assumes you're working on macOS and that you have **Homebrew** installed for package management.
@@ -62,6 +64,4 @@ This will launch your OpenGL application.
 
 By following these steps, you'll be able to install the necessary dependencies, compile the source code, and run the project on macOS using Homebrew for dependency management.
 
-
 https://github.com/user-attachments/assets/31acddeb-8d42-4d05-9d98-b2c6f530f65e
-
