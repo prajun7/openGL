@@ -142,21 +142,17 @@ void displayHandler() {
     glFlush();
 }
 
-  bool isPointInsideTriangle(float pointX, float pointY,
-    float triA_X, float triA_Y,
-    float triB_X, float triB_Y,
-    float triC_X, float triC_Y) {
-  // 'factor' is essentially a scaling factor derived from the triangle's area.
-  float factor = ((triB_Y - triC_Y) * (triA_X - triC_X) + (triC_X - triB_X) * (triA_Y - triC_Y));
-
-  // Compute barycentric weights for each vertex of the triangle.
-  float weightA = ((triB_Y - triC_Y) * (pointX - triC_X) + (triC_X - triB_X) * (pointY - triC_Y)) / factor;
-  float weightB = ((triC_Y - triA_Y) * (pointX - triC_X) + (triA_X - triC_X) * (pointY - triC_Y)) / factor;
-  float weightC = 1.0f - weightA - weightB;
-
-  // The point lies inside the triangle if all weights are nonnegative.
-  return (weightA >= 0.0f) && (weightB >= 0.0f) && (weightC >= 0.0f);
+bool isPointInsideLandingDip(float pointX, float pointY) {
+  // The landing dip is defined by vertices: (115,50), (165,50), (140,25)
+  // Check if pointY is within the vertical range of the triangle.
+  if (pointY < 25.0f || pointY > 50.0f) {
+      return false;
   }
+  // Compute horizontal boundaries based on pointY.
+  float leftBoundary  = 115.0f + (50.0f - pointY);  // From (115,50) to (140,25)
+  float rightBoundary = 165.0f - (50.0f - pointY);   // From (165,50) to (140,25)
+  return (pointX >= leftBoundary && pointX <= rightBoundary);
+}
 
 
 /**
@@ -176,7 +172,7 @@ void timerFunction(int value) {
       float tip_y = diamond_y - 25.0f;  
 
       // Landing dip triangle vertices: A = (115, 50), B = (165, 50), C = (140, 25)
-    if (isPointInsideTriangle(tip_x, tip_y, 115.0f, 50.0f, 165.0f, 50.0f, 140.0f, 25.0f)) {
+    if (isPointInsideLandingDip(tip_x, tip_y)) {
       // Snap the diamond into perfect alignment inside the dip:
       diamond_x = 140.0f;    // Center horizontally with the dip.
       diamond_y = 50.0f;     // So that the lower tip (diamond_y - 25) becomes 25, matching the dip's bottom.
