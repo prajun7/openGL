@@ -46,22 +46,25 @@ void drawLandingZone() {
   // 10 units = 10% of 600 = 60
   // 40 units = 40% of 800 = 320
   
-  glColor3f(0.0f, 0.467f, 0.784f);
   glBegin(GL_LINE_LOOP);
-      // Bottom edge
-      glVertex3f(10.0f, 0.0f, -50.0f);    // Bottom-left
-      glVertex3f(340.0f, 0.0f, -50.0f);    // Bottom-right
-      
-      // Right side of the dip
-      glVertex3f(340.0f, 60.0f, -50.0f);   // Top-right corner
-      glVertex3f(200.0f, 60.0f, -50.0f);   // Right edge of dip (340 - 140 = 200)
-      
-      // Triangular dip (25 units deep)
-      glVertex3f(175.0f, 35.0f, -50.0f);  // Bottom of the dip (center)
-      
-      // Left side of the dip
-      glVertex3f(150.0f, 60.0f, -50.0f);   // Left edge of dip (175 - 25 = 150)
-      glVertex3f(10.0f, 60.0f, -50.0f);    // Top-left corner
+    // Bottom edge of the rectangle
+    glVertex3f(10.0f, 0.0f, -50.0f);     // Bottom-left
+    glVertex3f(270.0f, 0.0f, -50.0f);    // Bottom-right
+
+    // Right side of the rectangle
+    glVertex3f(270.0f, 50.0f, -50.0f);   // Top-right corner
+
+    // Right edge of the dip (inner top)
+    glVertex3f(165.0f, 50.0f, -50.0f);   // Right edge of dip
+
+    // Triangular dip (25 units deep)
+    glVertex3f(140.0f, 25.0f, -50.0f);   // Bottom of the dip (center)
+
+    // Left edge of the dip (inner top)
+    glVertex3f(115.0f, 50.0f, -50.0f);   // Left edge of dip
+
+    // Left side of the rectangle
+    glVertex3f(10.0f, 50.0f, -50.0f);    // Top-left corner
   glEnd();
 }
 
