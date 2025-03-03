@@ -9,6 +9,9 @@
 // Display list index to draw a diamond.
 GLuint diamondList;
 
+// Display list index to draw the landing zone.
+GLuint landingZoneList;
+
 // Global variable for the diamond's vertical position.
 // Starting at 575 (as in your original translation).
 float diamond_y = 575.0f;
@@ -19,34 +22,46 @@ const float drop_speed = 5.0f;
 // Frame interval in milliseconds for 20 fps (1000ms / 20 = 50ms).
 const int frame_interval = 50;
 
-void createDiamondDisplayList() {
-    diamondList = glGenLists(1);
-    glNewList(diamondList, GL_COMPILE);
+void drawDiamond() {
+  // For UAH's blue color with hex code #0077C8.
+  // Hex Breakdown:
+  // Red: 00 (0 in decimal)
+  // Green: 77 (119 in decimal)
+  // Blue: C8 (200 in decimal)
 
-      // For UAH's blue color with hex code #0077C8.
-      // Hex Breakdown:
-      // Red: 00 (0 in decimal)
-      // Green: 77 (119 in decimal)
-      // Blue: C8 (200 in decimal)
-      // Convert to normalized RGB (divide by 255):
+  // Converting to normalized RGB (dividing by 255):
+  // Red: 0 / 255 = 0.0
+  // Green: 119 / 255 ≈ 0.467
+  // Blue: 200 / 255 ≈ 0.784
+  glColor3f(0.0f, 0.467f, 0.784f);
 
-      // Red: 0 / 255 = 0.0
-      // Green: 119 / 255 ≈ 0.467
-      // Blue: 200 / 255 ≈ 0.784
-      glColor3f(0.0f, 0.467f, 0.784f);
-
-      glPushMatrix();
-        // Scale the octahedron so that each edge is about 25 units long.
-        glScalef(25.0f, 25.0f, 25.0f);
-        glutWireOctahedron();
-      glPopMatrix();
-      
-    glEndList();
+  glPushMatrix();
+    // Scaling the octahedron so that each edge is about 25 units long.
+    glScalef(25.0f, 25.0f, 25.0f);
+    glutWireOctahedron();
+  glPopMatrix();
 }
 
-// This function calls the display list to draw the diamond.
-void drawDiamond() {
-    glCallList(diamondList);
+void drawLandingZone() {
+  glColor3f(0.0f, 0.467f, 0.784f);
+  glBegin(GL_LINE_LOOP);
+      glVertex3f(10.0f, 0.0f, -50.0f);   
+      glVertex3f(60.0f, 0.0f, -50.0f);  
+      glVertex3f(60.0f, 10.0f, -50.0f);  
+      glVertex3f(10.0f, 10.0f, -50.0f);  
+  glEnd();
+}
+
+void initDisplayList() {
+  diamondList = glGenLists(1);
+  glNewList(diamondList, GL_COMPILE);
+    drawDiamond();   
+  glEndList();
+
+  landingZoneList=glGenLists(2);
+    glNewList(landingZoneList, GL_COMPILE);
+    drawLandingZone();   
+  glEndList();
 }
 
 /**
@@ -58,16 +73,16 @@ void displayHandler() {
     glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Set up the modelview matrix.
+    // Resets the modelview matrix to ensure transformations start fresh each frame.
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    // Translate the diamond. The x and z positions remain fixed.
-    glTranslatef(400.0f, diamond_y, -50.0f);
-    
-    // Draw the diamond.
-    drawDiamond();
+    glPushMatrix();
+      glTranslatef(400.0f, diamond_y, -50.0f);
+      glCallList(diamondList);
+    glPopMatrix();
 
+    glCallList(landingZoneList);
     glFlush();
 }
 
@@ -100,7 +115,7 @@ int main(int argc, char ** argv) {
     glutDisplayFunc(displayHandler);
 
     // Create the display list for the diamond.
-    createDiamondDisplayList();
+    initDisplayList();
 
     // Set up the timer function for 20 fps.
     glutTimerFunc(frame_interval, timerFunction, 1);
