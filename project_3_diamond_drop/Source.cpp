@@ -68,37 +68,37 @@ void drawLandingZone() {
   // 40 units = 40% of 800 = 320
   
   glBegin(GL_LINE_LOOP);
-    // Bottom edge of the rectangle
+    // Bottom edge of the rectangle at y=0
     glVertex3f(10.0f, 0.0f, -50.0f);     // Bottom-left
     glVertex3f(270.0f, 0.0f, -50.0f);    // Bottom-right
 
-    // Right side of the rectangle
+    // Right side of the rectangle (top edge at y=50)
     glVertex3f(270.0f, 50.0f, -50.0f);   // Top-right corner
 
     // Right edge of the dip (inner top)
     glVertex3f(165.0f, 50.0f, -50.0f);   // Right edge of dip
 
-    // Triangular dip (25 units deep)
-    glVertex3f(140.0f, 25.0f, -50.0f);   // Bottom of the dip (center)
+    // Triangular dip (25 units deep; bottom at y=7 so the dip touches the red line)
+    glVertex3f(140.0f, 7.0f, -50.0f);    // Bottom of the dip (center)
 
     // Left edge of the dip (inner top)
     glVertex3f(115.0f, 50.0f, -50.0f);   // Left edge of dip
 
-    // Left side of the rectangle
+    // Left side of the rectangle (top edge at y=50)
     glVertex3f(10.0f, 50.0f, -50.0f);    // Top-left corner
   glEnd();
 }
 
 bool isPointInsideLandingDip(float pointX, float pointY) {
-  // The landing dip is defined by vertices: (115,50), (165,50), (140,25)
-  // Check if pointY is within the vertical range of the triangle.
-  if (pointY < 25.0f || pointY > 50.0f) {
-      return false;
-  }
-  // Compute horizontal boundaries based on pointY.
-  float leftBoundary  = 115.0f + (50.0f - pointY);  // From (115,50) to (140,25)
-  float rightBoundary = 165.0f - (50.0f - pointY);   // From (165,50) to (140,25)
-  return (pointX >= leftBoundary && pointX <= rightBoundary);
+  // Landing dip defined by vertices: (115,50), (165,50), (140,7)
+  if (pointY < 7.0f || pointY > 50.0f) {
+    return false;
+}
+// At y=50, boundaries are 115 and 165; at y=7, they converge at 140.
+float t = (50.0f - pointY) / 43.0f;  // 50 - 7 = 43
+float leftBoundary  = 115.0f + 25.0f * t;
+float rightBoundary = 165.0f - 25.0f * t;
+return (pointX >= leftBoundary && pointX <= rightBoundary);
 }
 
 void initDisplayList() {
@@ -168,6 +168,13 @@ void displayHandler() {
       glRasterPos2i((canvas_Width / 2) - 50, canvas_Height / 2);
       glCallList(youWinLabelList);
     }
+
+    // Draw a red line 7 pixels from the bottom
+    glColor3f(1.0f, 0.0f, 0.0f); // Red color
+    glBegin(GL_LINES);
+      glVertex3f(0.0f, 7.0f, -50.0f);
+      glVertex3f(canvas_Width, 7.0f, -50.0f);
+    glEnd();
     
     glFlush();
 }
@@ -190,12 +197,12 @@ void timerFunction(int value) {
       float tip_y = diamond_y - 25.0f;  
 
       // Landing dip triangle vertices: A = (115, 50), B = (165, 50), C = (140, 25)
-    if (isPointInsideLandingDip(tip_x, tip_y)) {
-      // Snap the diamond into perfect alignment inside the dip:
-      diamond_x = 140.0f;    // Center horizontally with the dip.
-      diamond_y = 50.0f;     // So that the lower tip (diamond_y - 25) becomes 25, matching the dip's bottom.
-      simulation_started = false;
-      simulation_time = 0.0f;
+      if (isPointInsideLandingDip(tip_x, tip_y)) {
+        // Snap the diamond into perfect alignment inside the dip:
+        diamond_x = 140.0f;    // Center horizontally with the dip.
+        diamond_y = 32.0f;     // So that the lower tip (diamond_y - 25) becomes 7, matching the dip's bottom.
+        simulation_started = false;
+        simulation_time = 0.0f;
     }
   }
   
