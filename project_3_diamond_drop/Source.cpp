@@ -1,3 +1,31 @@
+/**
+ * Graphics Pgm 3 for Prajun Trital
+ * 
+ * EXTRA CREDIT
+ * - Added dust partciles that cross the screen horizontally.
+ * - The diamond gets displaced by 4 units due to the wind effect.
+ * 
+ * 
+ * ARCHITECTURE
+ * GLUT event-driven generation of a canvas with a diamond, and a landing zone.
+ * Canvas is produced via the display event handler, which is in `displayCallback`, which calls the series of 
+ * display lists to draw text on the screen using `GLUT_BITMAP`, draws the diamond using the `drawDiamond` 
+ * function, and draws the landing zone using `drawLandingZone` function. The `timerCallback` updates the 
+ * position of the snowflakes and uses 50 ms as the time interval to achieve an animation running at 
+ * approximately 20 Frame per second(FPS). The `keyboardCallback` detects the keyboard press to start the diamond 
+ * fall, to move the diamond and to actrivate the wind effect. The `initDisplayLists` initiates the seven displayLists
+ * to record a set of drawing commands for diamon, landing zone, red line, and fours different messages. 
+ * The `initDisplayLists` is called in the main function. The diamond falls with intial velocity zero, and the
+ * vertical distance is calculated with ((intial_distance) +  (1/2) * gravity * t^2) equation.
+ * 
+ * EXTRA CREDIT ARCHITECTURE
+ * The `timerCallback` adds dust particle into the array called `dustParticles`, updates the position of it and 
+ * also deletes the dust particles. The displayCallback loops over the `dustParticles` array and draws 
+ * the dust particles. The `keyboardCallback` enables and disables the wind effect by 
+ * 
+ */
+
+
 #include <GL/glew.h>
 #include <GL/freeglut.h> 
 #include <stdio.h>
@@ -44,17 +72,20 @@ float diamond_y = 575.0f;
 // Diamond's horizontal position.
 float diamond_x = 400.0f;
 
-// Starting position (used when simulation begins).
+// Starting position (used when simulation begins)
 float diamond_initial_y = 575.0f;  
 
 bool simulation_started = false;
 
-float simulation_time = 0.0f;       // Time (in seconds) since the drop started.
-float gravity = 0.0f;               // Current gravity acceleration (ft/s^2).
+// Time (in seconds) since the drop started
+float simulation_time = 0.0f;   
 
-// Gravity constants (in ft/s^2; negative means downward acceleration).
-const float MOON_GRAVITY = -5.31f;  // Our Moon's gravity.
-const float IO_GRAVITY   = -5.9f;   // Io's gravity constant.
+// Current gravity acceleration (ft/s^2)
+float gravity = 0.0f;               
+
+// Gravity constants (in ft/s^2; negative means downward acceleration)
+const float MOON_GRAVITY = -5.31f;  // Moon's gravity
+const float IO_GRAVITY   = -5.9f;   // Io's gravity constant
 
 // Struct to represent a dust particle
 struct DustParticle {
@@ -62,17 +93,23 @@ struct DustParticle {
   float y;
 };
 
-std::vector<DustParticle> dustParticles; // Stores all active dust particles
+// Stores all active dust particles
+std::vector<DustParticle> dustParticles; 
 
-float dustTimer = 0.0f; // Accumulates time for new dust particle creation
+// Accumulates time for new dust particle creation
+float dustTimer = 0.0f; 
 
-// Frame interval in milliseconds for 20 fps (1000ms / 20 = 50ms).
+// Frame interval in milliseconds for 20 fps (1000ms / 20 = 50ms)
 const int frame_interval = 50;
 
-bool wind_enabled = false; // Wind effect is initially disabled
+// Wind effect is initially disabled
+bool wind_enabled = false; 
 
+/**
+ * Draws an Octahedron Diamond with the 25 units size
+ */
 void drawDiamond() {
-  // For UAH's blue color with hex code #0077C8.
+  // For UAH's blue color with hex code #0077C8
   // Hex Breakdown:
   // Red: 00 (0 in decimal)
   // Green: 77 (119 in decimal)
@@ -91,6 +128,9 @@ void drawDiamond() {
   glPopMatrix();
 }
 
+/**
+ * Draws a bottom red line that extends the axis.
+ */
 void drawBottomRedLine() 
 {
   glColor3f(1.0f, 0.0f, 0.0f);
@@ -100,6 +140,9 @@ void drawBottomRedLine()
   glEnd();
 }
 
+/**
+ * Draws a landing zone on the bottom left.
+ */
 void drawLandingZone() {
   // 10 units = 10% of 600 = 60
   // 40 units = 40% of 800 = 320
@@ -127,6 +170,13 @@ void drawLandingZone() {
   glEnd();
 }
 
+/**
+ * Function to decide if the tip of the diamond is inside the landing zone
+ * dip or not
+ * 
+ * @param pointX x-coordinate of the tip of the diamond
+ * @param pointY y-coordinate of the tip of the diamond
+ */
 bool isPointInsideLandingDip(float pointX, float pointY) {
   // Landing dip defined by vertices: (115,32), (165,32), (140,7)
   if (pointY < 7.0f || pointY > 32.0f) {
@@ -141,22 +191,30 @@ bool isPointInsideLandingDip(float pointX, float pointY) {
   return (pointX >= leftBoundary && pointX <= rightBoundary);
 }
 
-void initDisplayList() {
+/**
+ * Method to init the DisplayLists.
+ * Used in main function.
+ */
+void initDisplayLists() {
+  // Display list for diamond
   diamondList = glGenLists(1);
   glNewList(diamondList, GL_COMPILE);
     drawDiamond();   
   glEndList();
 
+  // Display list for bottom red line
   bottomRedLineList = glGenLists(2);
   glNewList(bottomRedLineList, GL_COMPILE);
     drawBottomRedLine();   
   glEndList();
 
+  // Display list for landing zone
   landingZoneList = glGenLists(3);
     glNewList(landingZoneList, GL_COMPILE);
     drawLandingZone();   
   glEndList();
 
+  // Fuel message display list
   fuelLabelList = glGenLists(4);
   glNewList(fuelLabelList, GL_COMPILE);
     const char* fuelLabel = "Fuel";
@@ -165,6 +223,7 @@ void initDisplayList() {
     }
   glEndList();
 
+  // You win message display list
   youWinLabelList = glGenLists(5);
   glNewList(youWinLabelList, GL_COMPILE);
     const char* youWinLabel = "YOU WIN";
@@ -193,12 +252,14 @@ void initDisplayList() {
 }
 
 /**
- * The display handler sets up the display and renders the scene.
- * The diamond's y-position is updated via the timer function.
- */
-void displayHandler() {
+* The display callback sets up the display and renders the initial scene with a diamond and a landing
+* zone
+* It executes the series of display lists to render the texts, diamong and landing zone.
+* The background is cleared to yellow, and the objects are rendered in UAH's Blue.
+*/
+void displayCallback() {
     glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     // Resets the modelview matrix to ensure transformations start fresh each frame.
     glMatrixMode(GL_MODELVIEW);
@@ -259,7 +320,7 @@ void displayHandler() {
 
 /**
  * Timer callback to update the diamond's position.
- * It moves the diamond downward and triggers a redisplay.
+ * It moves the diamond and triggers a redisplay.
  */
 void timerFunction(int value) {
   float dt = frame_interval / 1000.0f; // Convert frame interval to seconds
@@ -342,7 +403,7 @@ void timerFunction(int value) {
  * - Press 'W' to enable the wind effect.
  * - Press 'D' to disable the wind effect.
  */
-void keyboardHandler(unsigned char key, int x, int y) {
+void keyboardCallback(unsigned char key, int x, int y) {
   if (!simulation_started) {
     if (key == 'm' || key == 'M') {
       gravity = MOON_GRAVITY;
@@ -383,6 +444,7 @@ void keyboardHandler(unsigned char key, int x, int y) {
   if (key == 'w' || key == 'W') {
     wind_enabled = true;
   }
+  
   if (key == 'd' || key == 'D') {
     wind_enabled = false;
   }
@@ -394,14 +456,11 @@ int main(int argc, char ** argv) {
     glutInit(&argc, argv);
     my_setup(canvas_Width, canvas_Height, canvas_Name);
 
-    // Register the display handler.
-    glutDisplayFunc(displayHandler);
-
-    glutDisplayFunc(displayHandler);
-    glutKeyboardFunc(keyboardHandler);
+    glutDisplayFunc(displayCallback);
+    glutKeyboardFunc(keyboardCallback);
 
     // Create the display list for the diamond.
-    initDisplayList();
+    initDisplayLists();
 
     // Set up the timer function for 20 fps.
     glutTimerFunc(frame_interval, timerFunction, 1);
