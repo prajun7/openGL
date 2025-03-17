@@ -5,26 +5,26 @@
  * - Added dust partciles that cross the screen horizontally.
  * - The diamond gets displaced by 4 units due to the wind effect.
  * 
- * 
  * ARCHITECTURE
  * GLUT event-driven generation of a canvas with a diamond, and a landing zone.
  * Canvas is produced via the display event handler, which is in `displayCallback`, which calls the series of 
  * display lists to draw text on the screen using `GLUT_BITMAP`, draws the diamond using the `drawDiamond` 
- * function, and draws the landing zone using `drawLandingZone` function. The `timerCallback` updates the 
+ * function, and draws the landing zone using `drawLandingZone` function. The `timerFun` updates the 
  * position of the snowflakes and uses 50 ms as the time interval to achieve an animation running at 
  * approximately 20 Frame per second(FPS). The `keyboardCallback` detects the keyboard press to start the diamond 
  * fall, to move the diamond and to actrivate the wind effect. The `initDisplayLists` initiates the seven displayLists
  * to record a set of drawing commands for diamon, landing zone, red line, and fours different messages. 
- * The `initDisplayLists` is called in the main function. The diamond falls with intial velocity zero, and the
- * vertical distance is calculated with ((intial_distance) +  (1/2) * gravity * t^2) equation.
+ * The `initDisplayLists` is called in the main function. The `isPointInsideLandingDip` function determines 
+ * whether the diamond's tip is within the landing zone dip. The diamond falls with an initial velocity of zero, and 
+ * its vertical displacement is calculated using the equation that includes the initial 
+ * distance plus one-half times gravity multiplied by the square of time. 
  * 
  * EXTRA CREDIT ARCHITECTURE
- * The `timerCallback` adds dust particle into the array called `dustParticles`, updates the position of it and 
- * also deletes the dust particles. The displayCallback loops over the `dustParticles` array and draws 
- * the dust particles. The `keyboardCallback` enables and disables the wind effect by 
- * 
- */
-
+ * The `timerFun` adds dust particle into the array called `dustParticles`, updates the position of it and 
+ * also deletes the dust particles. The `displayCallback` loops over the `dustParticles` array and draws 
+ * the dust particles. The `keyboardCallback` enables/disables the wind effect by toggling the `wind_enabled`
+ * boolean. The `wind_enabled` is used in `displayCallback` to displace the diamond.
+*/
 
 #include <GL/glew.h>
 #include <GL/freeglut.h> 
@@ -106,8 +106,8 @@ const int frame_interval = 50;
 bool wind_enabled = false; 
 
 /**
- * Draws an Octahedron Diamond with the 25 units size
- */
+ Draws an octahedral diamond with a size of 25 units
+*/
 void drawDiamond() {
   // For UAH's blue color with hex code #0077C8
   // Hex Breakdown:
@@ -172,7 +172,7 @@ void drawLandingZone() {
 
 /**
  * Function to decide if the tip of the diamond is inside the landing zone
- * dip or not
+ * dip or not. Returns true of the tip is inside the landing zone.
  * 
  * @param pointX x-coordinate of the tip of the diamond
  * @param pointY y-coordinate of the tip of the diamond
@@ -322,7 +322,7 @@ void displayCallback() {
  * Timer callback to update the diamond's position.
  * It moves the diamond and triggers a redisplay.
  */
-void timerFunction(int value) {
+void timerFun(int value) {
   float dt = frame_interval / 1000.0f; // Convert frame interval to seconds
   dustTimer += dt;
 
@@ -388,7 +388,7 @@ void timerFunction(int value) {
   }
   
   glutPostRedisplay();
-  glutTimerFunc(frame_interval, timerFunction, 1);
+  glutTimerFunc(frame_interval, timerFun, 1);
 }
 
 /**
@@ -444,7 +444,7 @@ void keyboardCallback(unsigned char key, int x, int y) {
   if (key == 'w' || key == 'W') {
     wind_enabled = true;
   }
-  
+
   if (key == 'd' || key == 'D') {
     wind_enabled = false;
   }
@@ -463,7 +463,7 @@ int main(int argc, char ** argv) {
     initDisplayLists();
 
     // Set up the timer function for 20 fps.
-    glutTimerFunc(frame_interval, timerFunction, 1);
+    glutTimerFunc(frame_interval, timerFun, 1);
 
     // Enter the main loop.
     glutMainLoop();
