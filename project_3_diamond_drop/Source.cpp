@@ -9,21 +9,21 @@
  * GLUT event-driven generation of a canvas with a diamond, and a landing zone.
  * Canvas is produced via the display event handler, which is in `displayCallback`, which calls the series of 
  * display lists to draw text on the screen using `GLUT_BITMAP`, draws the diamond using the `drawDiamond` 
- * function, and draws the landing zone using `drawLandingZone` function. The `timerFun` updates the 
+ * function, and draws the landing zone using `drawLandingZone` function. The `timerFunc` updates the 
  * position of the snowflakes and uses 50 ms as the time interval to achieve an animation running at 
- * approximately 20 Frame per second(FPS). The `keyboardCallback` detects the keyboard press to start the diamond 
- * fall, to move the diamond and to actrivate the wind effect. The `initDisplayLists` initiates the seven displayLists
- * to record a set of drawing commands for diamon, landing zone, red line, and fours different messages. 
+ * approximately 20 Frame per second(FPS). The `keyboardCallback` detects the keyboard press to start the diamond's 
+ * fall, moves the diamond, and activates the wind effect. The `initDisplayLists` initiates seven displayLists
+ * to record a set of drawing commands for diamond, landing zone, red line, and fours different messages. 
  * The `initDisplayLists` is called in the main function. The `isPointInsideLandingDip` function determines 
  * whether the diamond's tip is within the landing zone dip. The diamond falls with an initial velocity of zero, and 
  * its vertical displacement is calculated using the equation that includes the initial 
  * distance plus one-half times gravity multiplied by the square of time. 
  * 
  * EXTRA CREDIT ARCHITECTURE
- * The `timerFun` adds dust particle into the array called `dustParticles`, updates the position of it and 
- * also deletes the dust particles. The `displayCallback` loops over the `dustParticles` array and draws 
- * the dust particles. The `keyboardCallback` enables/disables the wind effect by toggling the `wind_enabled`
- * boolean. The `wind_enabled` is used in `displayCallback` to displace the diamond.
+ * The `timerFunc` adds dust particle into the array called `dustParticles`, updates the position of it and 
+ * also removes the dust particles. The `displayCallback` loops over the dustParticles array to draw 
+ * each dust particle, and the `keyboardCallback` toggles the wind effect by enabling or disabling a boolean variable,
+ * `wind_enabled`, which is used in the displayCallback to displace the diamond.
 */
 
 #include <GL/glew.h>
@@ -253,8 +253,8 @@ void initDisplayLists() {
 
 /**
 * The display callback sets up the display and renders the initial scene with a diamond and a landing
-* zone
-* It executes the series of display lists to render the texts, diamong and landing zone.
+* zone.
+* It executes the series of display lists to render the texts, diamond and landing zone.
 * The background is cleared to yellow, and the objects are rendered in UAH's Blue.
 */
 void displayCallback() {
@@ -322,7 +322,7 @@ void displayCallback() {
  * Timer callback to update the diamond's position.
  * It moves the diamond and triggers a redisplay.
  */
-void timerFun(int value) {
+void timerFunc(int value) {
   float dt = frame_interval / 1000.0f; // Convert frame interval to seconds
   dustTimer += dt;
 
@@ -388,7 +388,7 @@ void timerFun(int value) {
   }
   
   glutPostRedisplay();
-  glutTimerFunc(frame_interval, timerFun, 1);
+  glutTimerFunc(frame_interval, timerFunc, 1);
 }
 
 /**
@@ -463,10 +463,8 @@ int main(int argc, char ** argv) {
     initDisplayLists();
 
     // Set up the timer function for 20 fps.
-    glutTimerFunc(frame_interval, timerFun, 1);
+    glutTimerFunc(frame_interval, timerFunc, 1);
 
-    // Enter the main loop.
     glutMainLoop();
-
     return 0;
 }
