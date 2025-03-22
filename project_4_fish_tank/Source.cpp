@@ -35,17 +35,66 @@ void drawLargeFish() {
 
   // Draw the body (octahedron)
   glPushMatrix();
-  glScalef(75.0f, 25.0f, 12.5f); // Scale to 150 wide, 50 tall, 25 deep
-  glutWireOctahedron();
+    glScalef(75.0f, 25.0f, 12.5f); // Scale to 150 wide, 50 tall, 25 deep
+    glutWireOctahedron();
   glPopMatrix();
 
   // Draw the tail (triangle)
-  float tail_length = 10.0f;
+  float tail_length = 20.0f;
   float tail_width = 20.0f;
   glBegin(GL_LINE_LOOP);
-  glVertex3f(75.0f, 0.0f, 0.0f);               // Tip attached to body (right edge after scaling)
-  glVertex3f(75.0f + tail_length, -tail_width / 2, 0.0f); // Bottom of tail base
-  glVertex3f(75.0f + tail_length, tail_width / 2, 0.0f);  // Top of tail base
+    glVertex3f(75.0f, 0.0f, 0.0f);               // Tip attached to body (right edge after scaling)
+    glVertex3f(75.0f + tail_length, -tail_width / 2, 0.0f); // Bottom of tail base
+    glVertex3f(75.0f + tail_length, tail_width / 2, 0.0f);  // Top of tail base
+  glEnd();
+
+  // Define tail geometry using variables
+  float tip_x = 75.0f;             // x-coordinate of the tip
+  float tip_y = 0.0f;              // y-coordinate of the tip
+  float base_x = tip_x + tail_length; // x-coordinate of the base
+  float base_bottom_y = -tail_width / 2; // y-coordinate of bottom base
+  float base_top_y = tail_width / 2;     // y-coordinate of top base
+
+  // Define tail vertices
+  float A[3] = {tip_x, tip_y, 0.0f};          // Tip
+  float B[3] = {base_x, base_bottom_y, 0.0f}; // Bottom base (yellow)
+  float C[3] = {base_x, base_top_y, 0.0f};    // Top base (deep blue)
+
+  // Define colors
+  float color_A[3] = {1.0f, 1.0f, 0.0f}; // Yellow for tip
+  float color_B[3] = {1.0f, 1.0f, 0.0f}; // Yellow for bottom
+  float color_C[3] = {0.0f, 0.0f, 0.5f}; // Deep blue for top
+
+  // Bounding box
+  float min_x = tip_x;         // Min x is the tip
+  float max_x = base_x;        // Max x is the base
+  float min_y = base_bottom_y; // Min y is the bottom base
+  float max_y = base_top_y;    // Max y is the top base
+
+  // Step size for pixel drawing
+  float step = 0.5f;
+
+  glBegin(GL_POINTS);
+    for (float x = min_x; x <= max_x; x += step) {
+      for (float y = min_y; y <= max_y; y += step) {
+        // Compute barycentric coordinates
+        float denom = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
+        float alpha = ((B[1] - C[1]) * (x - C[0]) + (C[0] - B[0]) * (y - C[1])) / denom;
+        float beta = ((C[1] - A[1]) * (x - C[0]) + (A[0] - C[0]) * (y - C[1])) / denom;
+        float gamma = 1.0f - alpha - beta;
+
+        // Check if point is inside the triangle
+        if (alpha >= 0 && alpha <= 1 && beta >= 0 && beta <= 1 && gamma >= 0 && gamma <= 1) {
+            // Interpolate color
+            float R = alpha * color_A[0] + beta * color_B[0] + gamma * color_C[0];
+            float G = alpha * color_A[1] + beta * color_B[1] + gamma * color_C[1];
+            float B = alpha * color_A[2] + beta * color_B[2] + gamma * color_C[2];
+            
+            glColor3f(R, G, B);
+            glVertex3f(x, y, 0.0f);
+        }
+      }
+    }
   glEnd();
 }
 
