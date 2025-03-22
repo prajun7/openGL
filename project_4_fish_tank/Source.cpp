@@ -24,6 +24,9 @@ GLuint largeFishList;
 
 GLuint smallFishList; 
 
+// The fish turns when its nose is within 4 units of fish tank edge
+float tank_edge_buffer = 4.0f;
+
 // Tracks the x-position of the fish's center
 float fish_x = 0.0f;
 
@@ -194,7 +197,7 @@ void timerFunc(int value) {
           // - Body spans from fish_x - 75 (nose) to fish_x + 75 (back of body)
           // - Tail tip extends to fish_x + 95
           // Check if nose hits left edge (-400 + 4 = -396 for a small buffer)
-          if (fish_x - 75.0f <= -396.0f) {
+          if (fish_x - 75.0f <= -400.0f + tank_edge_buffer) {
               current_state = ROTATING_TO_RIGHT; // Start turning to face right
           }
           break;
@@ -213,7 +216,7 @@ void timerFunc(int value) {
           // - Body spans from fish_x + 75 (nose) to fish_x - 75 (back of body)
           // - Tail tip extends to fish_x - 95
           // Check if nose hits right edge (400 - 4 = 396 for a small buffer)
-          if (fish_x + 75.0f >= 396.0f) {
+          if (fish_x + 75.0f >= 400.0f - tank_edge_buffer) {
               current_state = ROTATING_TO_LEFT;  // Start turning to face left
           }
           break;
