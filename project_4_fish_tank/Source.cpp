@@ -186,35 +186,48 @@ void displayCallback() {
  * It moves the diamond and triggers a redisplay.
  */
 void timerFunc(int value) {
-  if (current_state == MOVING_LEFT) {
-      fish_x -= 5.0f; // Move left 5 units per frame
-      // When facing right (rotation_angle = 0), nose is at fish_x - 75
-      float leftmost = fish_x - 75.0f;
-      if (leftmost <= -396.0f) { // Nose < 4 units from left edge (-400)
-          current_state = ROTATING_TO_RIGHT;
-      }
-  } else if (current_state == ROTATING_TO_RIGHT) {
-      rotation_angle += 5.0f; // Rotate +5 degrees per frame
-      if (rotation_angle >= 180.0f) {
-          rotation_angle = 180.0f; // Clamp to 180°
-          current_state = MOVING_RIGHT;
-      }
-  } else if (current_state == MOVING_RIGHT) {
-      fish_x += 5.0f; // Move right 5 units per frame
-      // When facing left (rotation_angle = 180), nose is at fish_x + 75
-      float rightmost = fish_x + 75.0f;
-      if (rightmost >= 396.0f) { // Nose < 4 units from right edge (400)
-          current_state = ROTATING_TO_LEFT;
-      }
-  } else if (current_state == ROTATING_TO_LEFT) {
-      rotation_angle -= 5.0f; // Rotate -5 degrees per frame
-      if (rotation_angle <= 0.0f) {
-          rotation_angle = 0.0f; // Clamp to 0°
-          current_state = MOVING_LEFT;
-      }
+  switch (current_state) {
+      case MOVING_LEFT:
+          // Move fish left by 5 units per frame
+          fish_x -= 5.0f;
+          // Fish faces right (rotation_angle = 0):
+          // - Body spans from fish_x - 75 (nose) to fish_x + 75 (back of body)
+          // - Tail tip extends to fish_x + 95
+          // Check if nose hits left edge (-400 + 4 = -396 for a small buffer)
+          if (fish_x - 75.0f <= -396.0f) {
+              current_state = ROTATING_TO_RIGHT; // Start turning to face right
+          }
+          break;
+      case ROTATING_TO_RIGHT:
+          // Rotate clockwise (+5° per frame) from 0° to 180°
+          rotation_angle += 5.0f;
+          if (rotation_angle >= 180.0f) {
+              rotation_angle = 180.0f;           // Clamp to exactly 180°
+              current_state = MOVING_RIGHT;      // Start moving right
+          }
+          break;
+      case MOVING_RIGHT:
+          // Move fish right by 5 units per frame
+          fish_x += 5.0f;
+          // Fish faces left (rotation_angle = 180):
+          // - Body spans from fish_x + 75 (nose) to fish_x - 75 (back of body)
+          // - Tail tip extends to fish_x - 95
+          // Check if nose hits right edge (400 - 4 = 396 for a small buffer)
+          if (fish_x + 75.0f >= 396.0f) {
+              current_state = ROTATING_TO_LEFT;  // Start turning to face left
+          }
+          break;
+      case ROTATING_TO_LEFT:
+          // Rotate counterclockwise (-5° per frame) from 180° to 0°
+          rotation_angle -= 5.0f;
+          if (rotation_angle <= 0.0f) {
+              rotation_angle = 0.0f;             // Clamp to exactly 0°
+              current_state = MOVING_LEFT;       // Start moving left again
+          }
+          break;
   }
-  glutPostRedisplay(); // Request redraw
-  glutTimerFunc(50, timerFunc, 0); // Schedule next update in 50 ms
+  glutPostRedisplay();           
+  glutTimerFunc(50, timerFunc, 0); 
 }
 
 /**
