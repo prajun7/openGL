@@ -46,7 +46,7 @@ State current_state = MOVING_LEFT;
  * The tail extends to the right of the body.
  */
 void drawLargeFish() {
-  glColor3f(1.0f, 0.0f, 0.0f); // PANTONE True Red
+  glColor3f(1.0f, 0.0f, 0.0f); // Hex #FF0000 (pure red) PANTONE True Red
 
   // Draw the body (octahedron)
   glPushMatrix();
@@ -120,7 +120,7 @@ void drawLargeFish() {
  * The tail extends to the right of the body.
  */
 void drawSmallFish() {
-  glColor3f(1.0f, 0.5f, 0.0f); // PANTONE Tangelo (orange)
+  glColor3f(1.0f, 0.647f, 0.0f); // Hex #FFA500 PANTONE Tangelo (orange)
 
   // Draw the body (octahedron)
   glPushMatrix();
@@ -165,8 +165,9 @@ void initDisplayLists() {
  * approximated at (-325, -350, -400) relative to the coordinate system.
  */
 void displayCallback() {
-  glClearColor(0.961f, 0.922f, 0.866f, 1.0f); // Pantone Spun Sugar background
-  glClear(GL_COLOR_BUFFER_BIT);
+  // Set the background color to Pantone 12-4401 TCX Spun Sugar (RGB 180, 220, 234)
+  glClearColor(0.706f, 0.863f, 0.918f, 1.0f); // Hex #B4DCEA
+  glClear(GL_COLOR_BUFFER_BIT); // Clear the screen with the specified color
 
   // Large fish
   glPushMatrix();
@@ -181,7 +182,7 @@ void displayCallback() {
   glCallList(smallFishList);
   glPopMatrix();
 
-  glutSwapBuffers();
+  glutSwapBuffers(); // Swap buffers for double-buffered animation
 }
 
 /**
