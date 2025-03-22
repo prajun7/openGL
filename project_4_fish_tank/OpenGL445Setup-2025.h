@@ -21,7 +21,7 @@ void my_3d_projection(int width, int height)
     glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0.0, width_bound, 0.0,  height_bound, 0.0, 100.0);
+    glOrtho(-width_bound/2, width_bound/2, -height_bound/2, height_bound/2, 100.0, 900.0);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -29,17 +29,16 @@ void my_3d_projection(int width, int height)
 #define STRT_Y_POS 25
 
 /* initialization routine */
-
 void my_setup(int width, int height, char *window_name_str)
 {
     // Allow for current OpenGL4.3 but backwards compatibility to legacy GL 2.1
     glutInitContextVersion(4, 3);
     glutInitContextProfile(GLUT_COMPATIBILITY_PROFILE);
     // To get double buffering, uncomment the following line
-    // glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     // below code line does single buffering - if above line is uncommented,
     // the single buffering line that follows will have to be commented out
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    // glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
     glutInitWindowSize(width, height);
     glutInitWindowPosition(STRT_X_POS, STRT_Y_POS);
     glutCreateWindow(window_name_str);

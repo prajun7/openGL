@@ -112,11 +112,11 @@ void displayCallback() {
 
   // Draw the small fish
   glPushMatrix();
-  glTranslatef(-325.0f, -350.0f, -400.0f); // Approximates 75 units from left, 50 units from bottom
+  glTranslatef(-325.0f, -350.0f, -400.0f); // 75 units from left (-400), 50 units above bottom (-400)
   glCallList(smallFishList);
   glPopMatrix();
 
-  glFlush();
+  glutSwapBuffers();
 }
 
 /**
