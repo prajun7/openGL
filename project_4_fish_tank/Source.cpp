@@ -247,13 +247,13 @@ void initDisplayLists() {
 
   cactusList = glGenLists(4);
   glNewList(cactusList, GL_COMPILE);
-    glColor3f(0.0f, 0.5f, 0.0f); // Dark green
-    drawBox(50.0f, -400.0f, -425.0f, 100.0f, -225.0f, -375.0f); // Main box
-    drawBox(0.0f, -312.5f, -425.0f, 50.0f, -292.5f, -375.0f); // Left horizontal
-    drawBox(-6.0f, -292.5f, -425.0f, 6.0f, -232.5f, -375.0f); // Left upward
-    drawBox(100.0f, -268.75f, -425.0f, 150.0f, -248.75f, -375.0f); // Right horizontal
-    drawBox(144.0f, -248.75f, -425.0f, 156.0f, -188.75f, -375.0f); // Right upward
-  glEndList();
+  glColor3f(0.0f, 0.5f, 0.0f); // Dark green
+  drawBox(50.0f, -400.0f, -425.0f, 100.0f, -225.0f, -375.0f);  // Main box
+  drawBox(0.0f, -312.5f, -425.0f, 50.0f, -292.5f, -375.0f);    // Left horizontal
+  drawBox(-12.0f, -292.5f, -425.0f, 0.0f, -232.5f, -375.0f);   // Left upward (adjusted)
+  drawBox(100.0f, -268.75f, -425.0f, 150.0f, -248.75f, -375.0f); // Right horizontal
+  drawBox(150.0f, -248.75f, -425.0f, 162.0f, -188.75f, -375.0f); // Right upward (adjusted)
+glEndList();
 }
 
 /**
