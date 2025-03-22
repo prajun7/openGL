@@ -2,8 +2,6 @@
  * Graphics Pgm 4 for Prajun Trital
  * 
  * EXTRA CREDIT
- * - Added dust partciles that cross the screen horizontally.
- * - The diamond gets displaced by 4 units due to the wind effect.
  * 
  * ARCHITECTURE
  * 
@@ -25,6 +23,8 @@ GLuint largeFishList;
 GLuint smallFishList; 
 
 GLuint pauseButtonList; 
+
+GLuint cactusList;
 
 // The fish turns when its nose is within 4 units of fish tank edge
 float tank_edge_buffer = 4.0f;
@@ -49,6 +49,25 @@ const float button_width = 30.0f;
 const float button_height = 30.0f;
 const float button_x = -390.0f; // 10 units from left edge (-400)
 const float button_y = 360.0f;  // Bottom at 360, top at 360 + 30 = 390, 10 units from top (400)
+
+// Bubble structure to hold position
+struct Bubble {
+  float x, y, z;
+};
+
+// Vector to store all active bubbles
+std::vector<Bubble> bubbles; 
+
+// Counter to track frames for bubble emission (1.2 s = 24 frames at 20 fps)
+int bubble_counter = 0;
+
+// Small fish position constants
+const float small_fish_center_x = -325.0f;
+const float small_fish_center_y = -350.0f;
+const float small_fish_center_z = -400.0f;
+
+const float small_fish_nose_x = small_fish_center_x - 25.0f; // -350.0f
+
 
 /**
  * Draws the large fish with a wireframe octahedron body and a triangular tail.
@@ -168,6 +187,41 @@ void drawPauseButton() {
   glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'P');
 }
 
+void drawBox(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+  glBegin(GL_QUADS);
+  // Front face
+  glVertex3f(minX, minY, maxZ);
+  glVertex3f(maxX, minY, maxZ);
+  glVertex3f(maxX, maxY, maxZ);
+  glVertex3f(minX, maxY, maxZ);
+  // Back face
+  glVertex3f(minX, minY, minZ);
+  glVertex3f(maxX, minY, minZ);
+  glVertex3f(maxX, maxY, minZ);
+  glVertex3f(minX, maxY, minZ);
+  // Left face
+  glVertex3f(minX, minY, minZ);
+  glVertex3f(minX, minY, maxZ);
+  glVertex3f(minX, maxY, maxZ);
+  glVertex3f(minX, maxY, minZ);
+  // Right face
+  glVertex3f(maxX, minY, minZ);
+  glVertex3f(maxX, minY, maxZ);
+  glVertex3f(maxX, maxY, maxZ);
+  glVertex3f(maxX, maxY, minZ);
+  // Top face
+  glVertex3f(minX, maxY, minZ);
+  glVertex3f(maxX, maxY, minZ);
+  glVertex3f(maxX, maxY, maxZ);
+  glVertex3f(minX, maxY, maxZ);
+  // Bottom face
+  glVertex3f(minX, minY, minZ);
+  glVertex3f(maxX, minY, minZ);
+  glVertex3f(maxX, minY, maxZ);
+  glVertex3f(minX, minY, maxZ);
+  glEnd();
+}
+
 /**
  * Initializes display lists for the large and small fish.
  * Creates and compiles display lists using drawLargeFish and drawSmallFish functions.
@@ -177,18 +231,28 @@ void initDisplayLists() {
   // Create display list for the large fish
   largeFishList = glGenLists(1);
   glNewList(largeFishList, GL_COMPILE);
-  drawLargeFish();
+    drawLargeFish();
   glEndList();
 
   // Create display list for the small fish
   smallFishList = glGenLists(2);
   glNewList(smallFishList, GL_COMPILE);
-  drawSmallFish();
+    drawSmallFish();
   glEndList();
 
   pauseButtonList = glGenLists(3);
   glNewList(pauseButtonList, GL_COMPILE);
-  drawPauseButton();
+    drawPauseButton();
+  glEndList();
+
+  cactusList = glGenLists(4);
+  glNewList(cactusList, GL_COMPILE);
+    glColor3f(0.0f, 0.5f, 0.0f); // Dark green
+    drawBox(50.0f, -400.0f, -425.0f, 100.0f, -225.0f, -375.0f); // Main box
+    drawBox(0.0f, -312.5f, -425.0f, 50.0f, -292.5f, -375.0f); // Left horizontal
+    drawBox(-6.0f, -292.5f, -425.0f, 6.0f, -232.5f, -375.0f); // Left upward
+    drawBox(100.0f, -268.75f, -425.0f, 150.0f, -248.75f, -375.0f); // Right horizontal
+    drawBox(144.0f, -248.75f, -425.0f, 156.0f, -188.75f, -375.0f); // Right upward
   glEndList();
 }
 
@@ -213,11 +277,24 @@ void displayCallback() {
 
   // Small fish
   glPushMatrix();
-  glTranslatef(-325.0f, -350.0f, -400.0f); // 75 units from left (-400), 50 units above bottom (-400)
+  glTranslatef(small_fish_center_x, small_fish_center_y, small_fish_center_z); // 75 units from left (-400), 50 units above bottom (-400)
   glCallList(smallFishList);
   glPopMatrix();
 
+  // Draw bubbles
+  glColor3f(0.0f, 0.0f, 0.0f); // Black
+
+  for (size_t i = 0; i < bubbles.size(); i++) {
+    glPushMatrix();
+
+    glTranslatef(bubbles[i].x, bubbles[i].y, bubbles[i].z);
+    glutWireSphere(5.0f, 10, 10); // Radius 5 = diameter 10, 10 slices/stacks
+    glPopMatrix();
+  } 
+
   glCallList(pauseButtonList);
+
+  glCallList(cactusList);
 
   glutSwapBuffers(); // Swap buffers for double-buffered animation
 }
@@ -267,6 +344,26 @@ void timerFunc(int value) {
                 current_state = MOVING_LEFT;       // Start moving left again
             }
             break;
+    }
+
+    // Bubble logic: Add a new bubble periodically
+    bubble_counter++;
+    if (bubble_counter >= 24) { // Example: 1.2 seconds at 20 fps
+        Bubble new_bubble = {small_fish_nose_x, small_fish_center_y, small_fish_center_z};
+        bubbles.push_back(new_bubble);
+        bubble_counter = 0;
+    }
+
+    // Update bubbles: Move upward by 5 units per frame
+    for (size_t i = 0; i < bubbles.size(); ++i) {
+        bubbles[i].y += 5.0f;
+    }
+
+    // Remove bubbles that exit the tank (y > 400)
+    for (int i = bubbles.size() - 1; i >= 0; --i) {
+        if (bubbles[i].y > 400.0f) {
+            bubbles.erase(bubbles.begin() + i);
+        }
     }
   }
   glutPostRedisplay();           
