@@ -24,6 +24,8 @@ GLuint largeFishList;
 
 GLuint smallFishList; 
 
+GLuint pauseButtonList; 
+
 // The fish turns when its nose is within 4 units of fish tank edge
 float tank_edge_buffer = 4.0f;
 
@@ -38,6 +40,15 @@ enum State { MOVING_LEFT, ROTATING_TO_RIGHT, MOVING_RIGHT, ROTATING_TO_LEFT };
 
 // Holds the current state, starting with moving left
 State current_state = MOVING_LEFT; 
+
+// Tracks whether animation is paused
+bool is_paused = false;
+
+// Button dimensions and position (in tank coordinates)
+const float button_width = 30.0f;
+const float button_height = 30.0f;
+const float button_x = -390.0f; // 10 units from left edge (-400)
+const float button_y = 360.0f;  // Bottom at 360, top at 360 + 30 = 390, 10 units from top (400)
 
 /**
  * Draws the large fish with a wireframe octahedron body and a triangular tail.
@@ -139,6 +150,25 @@ void drawSmallFish() {
 }
 
 /**
+ * Draws the pause button in the upper left corner labeled 'P'
+ */
+void drawPauseButton() {
+  // Draw button as a filled rectangle
+  glColor3f(0.0f, 0.0f, 0.0f); // Light gray background
+  glBegin(GL_QUADS);
+  glVertex3f(button_x, button_y, -400.0f);                    // Bottom-left
+  glVertex3f(button_x + button_width, button_y, -400.0f);     // Bottom-right
+  glVertex3f(button_x + button_width, button_y + button_height, -400.0f); // Top-right
+  glVertex3f(button_x, button_y + button_height, -400.0f);    // Top-left
+  glEnd();
+
+  // Draw 'P' text (approximate center of button)
+  glColor3f(1.0f, 1.0f, 1.0f);  
+  glRasterPos3f(button_x + 10.0f, button_y + 10.0f, -400.0f); 
+  glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'P');
+}
+
+/**
  * Initializes display lists for the large and small fish.
  * Creates and compiles display lists using drawLargeFish and drawSmallFish functions.
  * Must be called after GLUT initialization and before entering the main loop.
@@ -154,6 +184,11 @@ void initDisplayLists() {
   smallFishList = glGenLists(2);
   glNewList(smallFishList, GL_COMPILE);
   drawSmallFish();
+  glEndList();
+
+  pauseButtonList = glGenLists(3);
+  glNewList(pauseButtonList, GL_COMPILE);
+  drawPauseButton();
   glEndList();
 }
 
@@ -182,6 +217,8 @@ void displayCallback() {
   glCallList(smallFishList);
   glPopMatrix();
 
+  glCallList(pauseButtonList);
+
   glutSwapBuffers(); // Swap buffers for double-buffered animation
 }
 
@@ -190,45 +227,47 @@ void displayCallback() {
  * It moves the diamond and triggers a redisplay.
  */
 void timerFunc(int value) {
-  switch (current_state) {
-      case MOVING_LEFT:
-          // Move fish left by 5 units per frame
-          fish_x -= 5.0f;
-          // Fish faces right (rotation_angle = 0):
-          // - Body spans from fish_x - 75 (nose) to fish_x + 75 (back of body)
-          // - Tail tip extends to fish_x + 95
-          // Check if nose hits left edge (-400 + 4 = -396 for a small buffer)
-          if (fish_x - 75.0f <= -400.0f + tank_edge_buffer) {
-              current_state = ROTATING_TO_RIGHT; // Start turning to face right
-          }
-          break;
-      case ROTATING_TO_RIGHT:
-          // Rotate clockwise (+5° per frame) from 0° to 180°
-          rotation_angle += 5.0f;
-          if (rotation_angle >= 180.0f) {
-              rotation_angle = 180.0f;           // Clamp to exactly 180°
-              current_state = MOVING_RIGHT;      // Start moving right
-          }
-          break;
-      case MOVING_RIGHT:
-          // Move fish right by 5 units per frame
-          fish_x += 5.0f;
-          // Fish faces left (rotation_angle = 180):
-          // - Body spans from fish_x + 75 (nose) to fish_x - 75 (back of body)
-          // - Tail tip extends to fish_x - 95
-          // Check if nose hits right edge (400 - 4 = 396 for a small buffer)
-          if (fish_x + 75.0f >= 400.0f - tank_edge_buffer) {
-              current_state = ROTATING_TO_LEFT;  // Start turning to face left
-          }
-          break;
-      case ROTATING_TO_LEFT:
-          // Rotate counterclockwise (-5° per frame) from 180° to 0°
-          rotation_angle -= 5.0f;
-          if (rotation_angle <= 0.0f) {
-              rotation_angle = 0.0f;             // Clamp to exactly 0°
-              current_state = MOVING_LEFT;       // Start moving left again
-          }
-          break;
+  if (!is_paused) {
+    switch (current_state) {
+        case MOVING_LEFT:
+            // Move fish left by 5 units per frame
+            fish_x -= 5.0f;
+            // Fish faces right (rotation_angle = 0):
+            // - Body spans from fish_x - 75 (nose) to fish_x + 75 (back of body)
+            // - Tail tip extends to fish_x + 95
+            // Check if nose hits left edge (-400 + 4 = -396 for a small buffer)
+            if (fish_x - 75.0f <= -400.0f + tank_edge_buffer) {
+                current_state = ROTATING_TO_RIGHT; // Start turning to face right
+            }
+            break;
+        case ROTATING_TO_RIGHT:
+            // Rotate clockwise (+5° per frame) from 0° to 180°
+            rotation_angle += 5.0f;
+            if (rotation_angle >= 180.0f) {
+                rotation_angle = 180.0f;           // Clamp to exactly 180°
+                current_state = MOVING_RIGHT;      // Start moving right
+            }
+            break;
+        case MOVING_RIGHT:
+            // Move fish right by 5 units per frame
+            fish_x += 5.0f;
+            // Fish faces left (rotation_angle = 180):
+            // - Body spans from fish_x + 75 (nose) to fish_x - 75 (back of body)
+            // - Tail tip extends to fish_x - 95
+            // Check if nose hits right edge (400 - 4 = 396 for a small buffer)
+            if (fish_x + 75.0f >= 400.0f - tank_edge_buffer) {
+                current_state = ROTATING_TO_LEFT;  // Start turning to face left
+            }
+            break;
+        case ROTATING_TO_LEFT:
+            // Rotate counterclockwise (-5° per frame) from 180° to 0°
+            rotation_angle -= 5.0f;
+            if (rotation_angle <= 0.0f) {
+                rotation_angle = 0.0f;             // Clamp to exactly 0°
+                current_state = MOVING_LEFT;       // Start moving left again
+            }
+            break;
+    }
   }
   glutPostRedisplay();           
   glutTimerFunc(50, timerFunc, 0); 
@@ -246,6 +285,23 @@ void keyboardCallback(unsigned char key, int x, int y) {
   }
 }
 
+/**
+ * Mouse callback to handle pause button clicks
+ */
+void mouseCallback(int button, int state, int x, int y) {
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+      // Convert screen coordinates (0,0 at top-left) to tank coordinates (-400,400 at bottom-left)
+      float tank_x = (float)x * 800.0f / canvas_Width - 400.0f;
+      float tank_y = (float)(canvas_Height - y) * 800.0f / canvas_Height - 400.0f;
+
+      // Check if click is within button bounds
+      if (tank_x >= button_x && tank_x <= button_x + button_width &&
+          tank_y >= button_y && tank_y <= button_y + button_height) {
+          is_paused = !is_paused; // Toggle pause state
+      }
+  }
+}
+
 char canvas_Name[] = "Aquarium Screen-Saver Simulation";
 
 int main(int argc, char ** argv) {
@@ -254,6 +310,7 @@ int main(int argc, char ** argv) {
 
     glutDisplayFunc(displayCallback);
     glutKeyboardFunc(keyboardCallback);
+    glutMouseFunc(mouseCallback);
 
     // Create the display list for the diamond.
     initDisplayLists();
