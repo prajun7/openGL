@@ -24,6 +24,18 @@ GLuint largeFishList;
 
 GLuint smallFishList; 
 
+// Tracks the x-position of the fish's center
+float fish_x = 0.0f;
+
+// Tracks the fish's rotation about the y-axis (0° when facing right, 180° when facing left).
+float rotation_angle = 0.0f; 
+
+// Enumerates the possible states of the fish's animation.
+enum State { MOVING_LEFT, ROTATING_TO_RIGHT, MOVING_RIGHT, ROTATING_TO_LEFT };
+
+// Holds the current state, starting with moving left
+State current_state = MOVING_LEFT; 
+
 /**
  * Draws the large fish with a wireframe octahedron body and a triangular tail.
  * The body is 150 units wide, 50 units tall, and 25 units deep, colored in PANTONE True Red (RGB: 1.0, 0.0, 0.0).
@@ -153,13 +165,14 @@ void displayCallback() {
   glClearColor(0.961f, 0.922f, 0.866f, 1.0f); // Pantone Spun Sugar background
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // Draw the large fish
+  // Large fish
   glPushMatrix();
-  glTranslatef(0.0f, 0.0f, -400.0f); // Center of mass at (0, 0, -400)
+  glTranslatef(fish_x, 0.0f, -400.0f); 
+  glRotatef(rotation_angle, 0.0f, 1.0f, 0.0f); // Rotate about y-axis
   glCallList(largeFishList);
   glPopMatrix();
 
-  // Draw the small fish
+  // Small fish
   glPushMatrix();
   glTranslatef(-325.0f, -350.0f, -400.0f); // 75 units from left (-400), 50 units above bottom (-400)
   glCallList(smallFishList);
@@ -173,23 +186,47 @@ void displayCallback() {
  * It moves the diamond and triggers a redisplay.
  */
 void timerFunc(int value) {
- 
+  if (current_state == MOVING_LEFT) {
+      fish_x -= 5.0f; // Move left 5 units per frame
+      // When facing right (rotation_angle = 0), nose is at fish_x - 75
+      float leftmost = fish_x - 75.0f;
+      if (leftmost <= -396.0f) { // Nose < 4 units from left edge (-400)
+          current_state = ROTATING_TO_RIGHT;
+      }
+  } else if (current_state == ROTATING_TO_RIGHT) {
+      rotation_angle += 5.0f; // Rotate +5 degrees per frame
+      if (rotation_angle >= 180.0f) {
+          rotation_angle = 180.0f; // Clamp to 180°
+          current_state = MOVING_RIGHT;
+      }
+  } else if (current_state == MOVING_RIGHT) {
+      fish_x += 5.0f; // Move right 5 units per frame
+      // When facing left (rotation_angle = 180), nose is at fish_x + 75
+      float rightmost = fish_x + 75.0f;
+      if (rightmost >= 396.0f) { // Nose < 4 units from right edge (400)
+          current_state = ROTATING_TO_LEFT;
+      }
+  } else if (current_state == ROTATING_TO_LEFT) {
+      rotation_angle -= 5.0f; // Rotate -5 degrees per frame
+      if (rotation_angle <= 0.0f) {
+          rotation_angle = 0.0f; // Clamp to 0°
+          current_state = MOVING_LEFT;
+      }
+  }
+  glutPostRedisplay(); // Request redraw
+  glutTimerFunc(50, timerFunc, 0); // Schedule next update in 50 ms
 }
 
 /**
  * Handles keyboard input to control the animation and movement of the diamond.
  *
  * Controls:
- * - Press 'M' to apply the Moon's gravity.
- * - Press 'I' to apply Io's gravity.
- * - Press 'H' to move the diamond left.
- * - Press 'J' to move the diamond right.
- * - Press 'U' to move the diamond up.
- * - Press 'W' to enable the wind effect.
- * - Press 'D' to disable the wind effect.
+ * - Press 'Q' to quit.
  */
 void keyboardCallback(unsigned char key, int x, int y) {
- 
+  if (key == 'Q' || key == 'q') {
+      exit(0); 
+  }
 }
 
 char canvas_Name[] = "Aquarium Screen-Saver Simulation";
@@ -203,6 +240,9 @@ int main(int argc, char ** argv) {
 
     // Create the display list for the diamond.
     initDisplayLists();
+
+    // Start the animation
+    glutTimerFunc(50, timerFunc, 0);
 
     glutMainLoop();
     return 0;
