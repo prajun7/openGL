@@ -123,9 +123,12 @@ void drawLargeFish() {
     for (float x = min_x; x <= max_x; x += step) {
       for (float y = min_y; y <= max_y; y += step) {
         // Compute barycentric coordinates
-        float denom = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
-        float alpha = ((B[1] - C[1]) * (x - C[0]) + (C[0] - B[0]) * (y - C[1])) / denom;
-        float beta = ((C[1] - A[1]) * (x - C[0]) + (A[0] - C[0]) * (y - C[1])) / denom;
+
+        // totalArea of the triangle, in actual need to divide by 2 but, i am not diving, as it
+        // gets cancelled out in alpha, beta and gamma which are sub areas
+        float totalArea = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
+        float alpha = ((B[1] - C[1]) * (x - C[0]) + (C[0] - B[0]) * (y - C[1])) / totalArea;
+        float beta = ((C[1] - A[1]) * (x - C[0]) + (A[0] - C[0]) * (y - C[1])) / totalArea;
         float gamma = 1.0f - alpha - beta;
 
         // Check if point is inside the triangle
