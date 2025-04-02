@@ -180,7 +180,7 @@ void drawSmallFish() {
   glPopMatrix();
 
   // Draw the tail (triangle)
-  float tail_length = 10.0f; // Fixed length, consistent with large fish
+  float tail_length = 7.0f;
   float tail_width = 7.0f;
   glBegin(GL_LINE_LOOP);
     glVertex3f(25.0f, 0.0f, 0.0f);               // Tip attached to body (right edge after scaling)
