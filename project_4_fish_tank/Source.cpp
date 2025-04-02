@@ -299,7 +299,7 @@ void displayCallback() {
   // Large fish
   glPushMatrix();
     glTranslatef(fish_x, 0.0f, -400.0f); 
-    glRotatef(rotation_angle, 0.0f, 1.0f, 0.0f); // Rotate about y-axis
+    glRotatef(rotation_angle, 0.0f, 1.0f, 0.0f); 
     glCallList(largeFishList);
   glPopMatrix();
 
@@ -311,7 +311,7 @@ void displayCallback() {
   glPopMatrix();
 
   // Draw bubbles
-  glColor3f(0.0f, 0.0f, 0.0f); // Black
+  glColor3f(0.0f, 0.0f, 0.0f);
 
   for (size_t i = 0; i < bubbles.size(); i++) {
     glPushMatrix();
