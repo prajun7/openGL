@@ -6,22 +6,23 @@
  * - Click on P button to pause the animation.
  * 
  * ARCHITECTURE
- * GLUT event-driven generation of a canvas with a fish tank. Canvas is produced via the 
+ * GLUT event-driven generation of a canvas with an aquarium. Canvas is produced via the 
  * display event handler, which is in `displayCallback`, that calls the series of display lists 
  * to draw large fish using `drawLargeFish` function, draws small fish using `drawSmallFish` function,
  * and draws the cactus using the `drawBox`. The `timeFunc` updates the large fish x-axis based on the
  * direction the fish is currently pointing and uses 50 ms as the time interval to achieve an animation
- * running at approximately 20 Frame per second(FPS) . Four states that are MOVING_LEFT, ROTATING_TO_RIGHT, 
- * MOVING_RIGHT, and ROTATING_TO_LEFT are used to determine the rotation and the direction the fish needs to be 
- * moved based on its position. The `keyboardCallback` detect the keyboard press to quit the simulation.
- * Barycentric interpolation is used to calculate a smooth transition in the fish tail stripe, blending the color
- * between yellow and deep blue, with a step size of 1.0f used for drawing the points along the stripe.
+ * running at approximately 20 Frame per second(FPS). Four states that are MOVING_LEFT, ROTATING_TO_RIGHT, 
+ * MOVING_RIGHT, and ROTATING_TO_LEFT are used to determine the rotation and the direction the fish that it
+ * needs to be moved based on its current position. The `keyboardCallback` detect the keyboard press to 
+ * quit the simulation. Barycentric interpolation is used to calculate a smooth transition in the fish tail stripe, 
+ * blending the color between yellow and deep blue, with a step size of 1.0f used for drawing the points 
+ * along the stripe.
  * 
  * EXTRA CREDIT ARCHITECTURE
  * The `timerFunc` adds bubbles into the array called `bubbles`, updates the position of it and
  * also removes the bubble. The `displayCallback` loops over the `bubbles` array to draw each
- * bubles. The `mouseCallback` detects mouse clicks to toggle the animation's paused
- * state by setting the boolean variable is_paused, which is checked within the timerFunc.
+ * bubbles. The `mouseCallback` detects mouse clicks to toggle the animation's paused
+ * state by setting the boolean variable `is_paused`, which is checked within the `timerFunc`.
 */
 
 #include <GL/glew.h>
