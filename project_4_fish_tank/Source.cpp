@@ -14,8 +14,14 @@
  * running at approximately 20 Frame per second(FPS) . Four states that are MOVING_LEFT, ROTATING_TO_RIGHT, 
  * MOVING_RIGHT, and ROTATING_TO_LEFT are used to determine the rotation and the direction the fish needs to be 
  * moved based on its position. The `keyboardCallback` detect the keyboard press to quit the simulation.
+ * Barycentric interpolation is used to calculate a smooth transition in the fish tail stripe, blending the color
+ * between yellow and deep blue, with a step size of 1.0f used for drawing the points along the stripe.
  * 
  * EXTRA CREDIT ARCHITECTURE
+ * The `timerFunc` adds bubbles into the array called `bubbles`, updates the position of it and
+ * also removes the bubble. The `displayCallback` loops over the `bubbles` array to draw each
+ * bubles. The `mouseCallback` detects mouse clicks to toggle the animation's paused
+ * state by setting the boolean variable is_paused, which is checked within the timerFunc.
 */
 
 #include <GL/glew.h>
@@ -28,12 +34,16 @@
 #define canvas_Width 800
 #define canvas_Height 800
 
+// Display list index to draw the large fish.
 GLuint largeFishList;
 
+// Display list index to draw the small fish.
 GLuint smallFishList; 
 
+// Display list index to draw the pause button.
 GLuint pauseButtonList; 
 
+// Display list index to draw the cactus.
 GLuint cactusList;
 
 // The fish turns when its nose is within 4 units of fish tank edge
@@ -80,8 +90,9 @@ const float small_fish_nose_x = small_fish_center_x - 25.0f; // -350.0f
 
 /**
  * Draws the large fish with a wireframe octahedron body and a triangular tail.
- * The body is 150 units wide, 50 units tall, and 25 units deep, colored in PANTONE True Red (RGB: 1.0, 0.0, 0.0).
- * The tail has a wireframe outline and a vertical stripe positioned 3/4 of the way along its length from the tip.
+ * The body is 150 units wide, 50 units tall, and 25 units deep, 
+ * colored in PANTONE True Red (RGB: 1.0, 0.0, 0.0). The tail has a wireframe outline and a vertical stripe 
+ * positioned 3/4 of the way along its length from the tip.
  * The stripe interpolates color from yellow (bottom) to deep blue (top) using manual pixel drawing.
  */
 void drawLargeFish() {
@@ -93,7 +104,7 @@ void drawLargeFish() {
     glutWireOctahedron();
   glPopMatrix();
 
-  // --- Tail Geometry Setup ---
+  // Tail
   float tail_length = 20.0f;
   float tail_width_at_base = 20.0f;
 
@@ -134,7 +145,6 @@ void drawLargeFish() {
         // Calculating interpolation factor 't' (0 at bottom, 1 at top of the stripe)
         float t;
         t = (y - stripe_bottom_y) / (stripe_top_y - stripe_bottom_y);
-        // Clamp t to [0, 1] to avoid potential floating point issues
         if (t < 0.0f) t = 0.0f;
         if (t > 1.0f) t = 1.0f;
 
@@ -154,7 +164,8 @@ void drawLargeFish() {
 
 /**
  * Draws the small fish with a wireframe octahedron body and a triangular tail.
- * The body is 50 units wide, 20 units tall, and 10 units deep, colored in PANTONE Tangelo (RGB: 1.0, 0.5, 0.0).
+ * The body is 50 units wide, 20 units tall, and 10 units deep, 
+ * colored in PANTONE Tangelo (RGB: 1.0, 0.5, 0.0).
  * The tail is 7 units wide, attached to the body at the tip of the triangle, with a length of 10 units.
  * The tail extends to the right of the body.
  */
@@ -182,7 +193,7 @@ void drawSmallFish() {
  */
 void drawPauseButton() {
   // Draw button as a filled rectangle
-  glColor3f(0.0f, 0.0f, 0.0f); // Light gray background
+  glColor3f(0.0f, 0.0f, 0.0f); 
   glBegin(GL_QUADS);
     glVertex3f(button_x, button_y, -400.0f);                    // Bottom-left
     glVertex3f(button_x + button_width, button_y, -400.0f);     // Bottom-right
@@ -190,12 +201,16 @@ void drawPauseButton() {
     glVertex3f(button_x, button_y + button_height, -400.0f);    // Top-left
   glEnd();
 
-  // Draw 'P' text (approximate center of button)
+  // Draw 'P' text
   glColor3f(1.0f, 1.0f, 1.0f);  
   glRasterPos3f(button_x + 10.0f, button_y + 10.0f, -400.0f); 
   glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'P');
 }
 
+/**
+ * Draws the Box using GL_QUADS.
+ * This boxes are use for Cactus drawing.
+ */
 void drawBox(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
   glBegin(GL_QUADS);
     // Front face
@@ -232,9 +247,8 @@ void drawBox(float minX, float minY, float minZ, float maxX, float maxY, float m
 }
 
 /**
- * Initializes display lists for the large and small fish.
- * Creates and compiles display lists using drawLargeFish and drawSmallFish functions.
- * Must be called after GLUT initialization and before entering the main loop.
+ * Initializes display lists for the large fish, small fish, cactus and pause button.
+ * This is called in main method.
  */
 void initDisplayLists() {
   // Create display list for the large fish
@@ -257,16 +271,16 @@ void initDisplayLists() {
   cactusList = glGenLists(4);
   glNewList(cactusList, GL_COMPILE);
     glColor3f(0.0f, 0.5f, 0.0f); // Dark green
-    // Box 1: Main box (Correct)
+    // Main box
     drawBox(50.0f, -400.0f, -425.0f, 100.0f, -225.0f, -375.0f);
-    // Box 2: Left horizontal arm (Correct)
+    // Left horizontal arm 
     drawBox(0.0f, -312.5f, -425.0f, 50.0f, -292.5f, -375.0f);
-    // Box 3: Left upward arm (FIXED: Reverted to original inward position [0, 12])
-    drawBox(0.0f, -292.5f, -425.0f, 12.0f, -232.5f, -375.0f); // <-- Fixed line
-    // Box 4: Right horizontal arm (Correct)
+    // Left upward arm
+    drawBox(0.0f, -292.5f, -425.0f, 12.0f, -232.5f, -375.0f); 
+    // Right horizontal arm
     drawBox(100.0f, -268.75f, -425.0f, 150.0f, -248.75f, -375.0f);
-    // Box 5: Right upward arm (FIXED: Positioned inward relative to tip [138, 150])
-    drawBox(138.0f, -248.75f, -425.0f, 150.0f, -188.75f, -375.0f); // <-- Fixed line
+    // Box 5: Right upward arm (
+    drawBox(138.0f, -248.75f, -425.0f, 150.0f, -188.75f, -375.0f); 
   glEndList();
 }
 
