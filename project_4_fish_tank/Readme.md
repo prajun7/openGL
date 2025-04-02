@@ -1,6 +1,8 @@
 # Aquarium Screen-Saver Simulation
 
-# OpenGL Project Setup on macOS
+https://github.com/user-attachments/assets/f7d2bf1b-fcea-4b12-a613-98a27ebb7567
+
+## OpenGL Project Setup on macOS
 
 To successfully run this project, follow the steps below. This guide assumes you're working on macOS and that you have **Homebrew** installed for package management.
 
