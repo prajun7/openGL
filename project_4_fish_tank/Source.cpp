@@ -213,33 +213,43 @@ void drawPauseButton() {
  * This boxes are use for Cactus drawing.
  */
 void drawBox(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
-  glBegin(GL_QUADS);
-    // Front face
+  // Front face outline
+  glBegin(GL_LINE_LOOP);
     glVertex3f(minX, minY, maxZ);
     glVertex3f(maxX, minY, maxZ);
     glVertex3f(maxX, maxY, maxZ);
     glVertex3f(minX, maxY, maxZ);
-    // Back face
+  glEnd();
+  // Back face outline
+  glBegin(GL_LINE_LOOP);
     glVertex3f(minX, minY, minZ);
     glVertex3f(maxX, minY, minZ);
     glVertex3f(maxX, maxY, minZ);
     glVertex3f(minX, maxY, minZ);
-    // Left face
+  glEnd();
+  // Left face outline
+  glBegin(GL_LINE_LOOP);
     glVertex3f(minX, minY, minZ);
     glVertex3f(minX, minY, maxZ);
     glVertex3f(minX, maxY, maxZ);
     glVertex3f(minX, maxY, minZ);
-    // Right face
+  glEnd();
+  // Right face outline
+  glBegin(GL_LINE_LOOP);
     glVertex3f(maxX, minY, minZ);
     glVertex3f(maxX, minY, maxZ);
     glVertex3f(maxX, maxY, maxZ);
     glVertex3f(maxX, maxY, minZ);
-    // Top face
+  glEnd();
+  // Top face outline
+  glBegin(GL_LINE_LOOP);
     glVertex3f(minX, maxY, minZ);
     glVertex3f(maxX, maxY, minZ);
     glVertex3f(maxX, maxY, maxZ);
     glVertex3f(minX, maxY, maxZ);
-    // Bottom face
+  glEnd();
+  // Bottom face outline
+  glBegin(GL_LINE_LOOP);
     glVertex3f(minX, minY, minZ);
     glVertex3f(maxX, minY, minZ);
     glVertex3f(maxX, minY, maxZ);
