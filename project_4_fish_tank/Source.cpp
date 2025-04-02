@@ -2,8 +2,18 @@
  * Graphics Pgm 4 for Prajun Trital
  * 
  * EXTRA CREDIT
+ * - The small fish emitts an air bubble from its nose once every 1.2 second.
+ * - Click on P button to pause the animation.
  * 
  * ARCHITECTURE
+ * GLUT event-driven generation of a canvas with a fish tank. Canvas is produced via the 
+ * display event handler, which is in `displayCallback`, that calls the series of display lists 
+ * to draw large fish using `drawLargeFish` function, draws small fish using `drawSmallFish` function,
+ * and draws the cactus using the `drawBox`. The `timeFunc` updates the large fish x-axis based on the
+ * direction the fish is currently pointing and uses 50 ms as the time interval to achieve an animation
+ * running at approximately 20 Frame per second(FPS) . Four states that are MOVING_LEFT, ROTATING_TO_RIGHT, 
+ * MOVING_RIGHT, and ROTATING_TO_LEFT are used to determine the rotation and the direction the fish needs to be 
+ * moved based on its position. The `keyboardCallback` detect the keyboard press to quit the simulation.
  * 
  * EXTRA CREDIT ARCHITECTURE
 */
@@ -68,12 +78,11 @@ const float small_fish_center_z = -400.0f;
 
 const float small_fish_nose_x = small_fish_center_x - 25.0f; // -350.0f
 
-
 /**
  * Draws the large fish with a wireframe octahedron body and a triangular tail.
  * The body is 150 units wide, 50 units tall, and 25 units deep, colored in PANTONE True Red (RGB: 1.0, 0.0, 0.0).
- * The tail is 20 units wide, attached to the body at the tip of the triangle, with a length of 10 units.
- * The tail extends to the right of the body.
+ * The tail has a wireframe outline and a vertical stripe positioned 3/4 of the way along its length from the tip.
+ * The stripe interpolates color from yellow (bottom) to deep blue (top) using manual pixel drawing.
  */
 void drawLargeFish() {
   glColor3f(1.0f, 0.0f, 0.0f); // Hex #FF0000 (pure red) PANTONE True Red
@@ -84,64 +93,61 @@ void drawLargeFish() {
     glutWireOctahedron();
   glPopMatrix();
 
-  // Draw the tail (triangle)
+  // --- Tail Geometry Setup ---
   float tail_length = 20.0f;
-  float tail_width = 20.0f;
+  float tail_width_at_base = 20.0f;
+
+  // Tip of the tail (attached to the body's right edge)
+  float tip_x = 75.0f;
+  float tip_y = 0.0f;
+
+  // Base of the tail
+  float base_x = tip_x + tail_length;
+  float base_bottom_y = -tail_width_at_base / 2.0f;
+  float base_top_y = tail_width_at_base / 2.0f;
+
+  // Calculate Stripe Position (3/4 along tail length) ---
+  float fraction_along_length = 0.75f; // Position fraction (0=tip, 1=base)
+  float stripe_x = tip_x + tail_length * fraction_along_length;
+  float stripe_height = tail_width_at_base * fraction_along_length; // Height scales linearly
+  float stripe_bottom_y = -stripe_height / 2.0f;
+  float stripe_top_y = stripe_height / 2.0f;
+
+  // Draw Wireframe Tail Outline 
+  glColor3f(1.0f, 0.0f, 0.0f);
   glBegin(GL_LINE_LOOP);
-    glVertex3f(75.0f, 0.0f, 0.0f);               // Tip attached to body (right edge after scaling)
-    glVertex3f(75.0f + tail_length, -tail_width / 2, 0.0f); // Bottom of tail base
-    glVertex3f(75.0f + tail_length, tail_width / 2, 0.0f);  // Top of tail base
+    glVertex3f(tip_x, tip_y, 0.0f);             // Tip
+    glVertex3f(base_x, base_bottom_y, 0.0f);    // Bottom of tail base
+    glVertex3f(base_x, base_top_y, 0.0f);       // Top of tail base
   glEnd();
 
-  // Define tail geometry using variables
-  float tip_x = 75.0f;             // x-coordinate of the tip
-  float tip_y = 0.0f;              // y-coordinate of the tip
-  float base_x = tip_x + tail_length; // x-coordinate of the base
-  float base_bottom_y = -tail_width / 2; // y-coordinate of bottom base
-  float base_top_y = tail_width / 2;     // y-coordinate of top base
+  // Define stripe endpoint colors
+  float color_bottom[3] = {1.0f, 1.0f, 0.0f}; // Yellow
+  float color_top[3]    = {0.0f, 0.0f, 0.5f}; // Deep blue
 
-  // Define tail vertices
-  float A[3] = {tip_x, tip_y, 0.0f};          // Tip
-  float B[3] = {base_x, base_bottom_y, 0.0f}; // Bottom base (yellow)
-  float C[3] = {base_x, base_top_y, 0.0f};    // Top base (deep blue)
-
-  // Define colors
-  float color_A[3] = {1.0f, 1.0f, 0.0f}; // Yellow for tip
-  float color_B[3] = {1.0f, 1.0f, 0.0f}; // Yellow for bottom
-  float color_C[3] = {0.0f, 0.0f, 0.5f}; // Deep blue for top
-
-  // Bounding box
-  float min_x = tip_x;         // Min x is the tip
-  float max_x = base_x;        // Max x is the base
-  float min_y = base_bottom_y; // Min y is the bottom base
-  float max_y = base_top_y;    // Max y is the top base
-
-  // Step size for pixel drawing
-  float step = 0.5f;
+  // Step size for pixel drawing along the vertical stripe
+  float step = 1.0f;
 
   glBegin(GL_POINTS);
-    for (float x = min_x; x <= max_x; x += step) {
-      for (float y = min_y; y <= max_y; y += step) {
-        // Compute barycentric coordinates
+    // Loop vertically along the calculated stripe position
+    for (float y = stripe_bottom_y; y <= stripe_top_y; y += step) {
+        // Calculating interpolation factor 't' (0 at bottom, 1 at top of the stripe)
+        float t;
+        t = (y - stripe_bottom_y) / (stripe_top_y - stripe_bottom_y);
+        // Clamp t to [0, 1] to avoid potential floating point issues
+        if (t < 0.0f) t = 0.0f;
+        if (t > 1.0f) t = 1.0f;
 
-        // totalArea of the triangle, in actual need to divide by 2 but, i am not diving, as it
-        // gets cancelled out in alpha, beta and gamma which are sub areas
-        float totalArea = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
-        float alpha = ((B[1] - C[1]) * (x - C[0]) + (C[0] - B[0]) * (y - C[1])) / totalArea;
-        float beta = ((C[1] - A[1]) * (x - C[0]) + (A[0] - C[0]) * (y - C[1])) / totalArea;
-        float gamma = 1.0f - alpha - beta;
+        // Interpolate color: color = (1 - t) * color_bottom + t * color_top
+        float R = (1.0f - t) * color_bottom[0] + t * color_top[0];
+        float G = (1.0f - t) * color_bottom[1] + t * color_top[1];
+        float B = (1.0f - t) * color_bottom[2] + t * color_top[2];
 
-        // Check if point is inside the triangle
-        if (alpha >= 0 && alpha <= 1 && beta >= 0 && beta <= 1 && gamma >= 0 && gamma <= 1) {
-            // Interpolate color
-            float R = alpha * color_A[0] + beta * color_B[0] + gamma * color_C[0];
-            float G = alpha * color_A[1] + beta * color_B[1] + gamma * color_C[1];
-            float B = alpha * color_A[2] + beta * color_B[2] + gamma * color_C[2];
-            
-            glColor3f(R, G, B);
-            glVertex3f(x, y, 0.0f);
-        }
-      }
+        // Set the interpolated color for the current pixel
+        glColor3f(R, G, B);
+
+        // Draw the pixel at the calculated position on the stripe (using stripe_x)
+        glVertex3f(stripe_x, y, 0.0f);
     }
   glEnd();
 }
@@ -157,17 +163,17 @@ void drawSmallFish() {
 
   // Draw the body (octahedron)
   glPushMatrix();
-  glScalef(25.0f, 10.0f, 5.0f); // Scale to 50 wide, 20 tall, 10 deep
-  glutWireOctahedron();
+    glScalef(25.0f, 10.0f, 5.0f); // Scale to 50 wide, 20 tall, 10 deep
+    glutWireOctahedron();
   glPopMatrix();
 
   // Draw the tail (triangle)
   float tail_length = 10.0f; // Fixed length, consistent with large fish
   float tail_width = 7.0f;
   glBegin(GL_LINE_LOOP);
-  glVertex3f(25.0f, 0.0f, 0.0f);               // Tip attached to body (right edge after scaling)
-  glVertex3f(25.0f + tail_length, -tail_width / 2, 0.0f); // Bottom of tail base
-  glVertex3f(25.0f + tail_length, tail_width / 2, 0.0f);  // Top of tail base
+    glVertex3f(25.0f, 0.0f, 0.0f);               // Tip attached to body (right edge after scaling)
+    glVertex3f(25.0f + tail_length, -tail_width / 2, 0.0f); // Bottom of tail base
+    glVertex3f(25.0f + tail_length, tail_width / 2, 0.0f);  // Top of tail base
   glEnd();
 }
 
@@ -178,10 +184,10 @@ void drawPauseButton() {
   // Draw button as a filled rectangle
   glColor3f(0.0f, 0.0f, 0.0f); // Light gray background
   glBegin(GL_QUADS);
-  glVertex3f(button_x, button_y, -400.0f);                    // Bottom-left
-  glVertex3f(button_x + button_width, button_y, -400.0f);     // Bottom-right
-  glVertex3f(button_x + button_width, button_y + button_height, -400.0f); // Top-right
-  glVertex3f(button_x, button_y + button_height, -400.0f);    // Top-left
+    glVertex3f(button_x, button_y, -400.0f);                    // Bottom-left
+    glVertex3f(button_x + button_width, button_y, -400.0f);     // Bottom-right
+    glVertex3f(button_x + button_width, button_y + button_height, -400.0f); // Top-right
+    glVertex3f(button_x, button_y + button_height, -400.0f);    // Top-left
   glEnd();
 
   // Draw 'P' text (approximate center of button)
@@ -192,36 +198,36 @@ void drawPauseButton() {
 
 void drawBox(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
   glBegin(GL_QUADS);
-  // Front face
-  glVertex3f(minX, minY, maxZ);
-  glVertex3f(maxX, minY, maxZ);
-  glVertex3f(maxX, maxY, maxZ);
-  glVertex3f(minX, maxY, maxZ);
-  // Back face
-  glVertex3f(minX, minY, minZ);
-  glVertex3f(maxX, minY, minZ);
-  glVertex3f(maxX, maxY, minZ);
-  glVertex3f(minX, maxY, minZ);
-  // Left face
-  glVertex3f(minX, minY, minZ);
-  glVertex3f(minX, minY, maxZ);
-  glVertex3f(minX, maxY, maxZ);
-  glVertex3f(minX, maxY, minZ);
-  // Right face
-  glVertex3f(maxX, minY, minZ);
-  glVertex3f(maxX, minY, maxZ);
-  glVertex3f(maxX, maxY, maxZ);
-  glVertex3f(maxX, maxY, minZ);
-  // Top face
-  glVertex3f(minX, maxY, minZ);
-  glVertex3f(maxX, maxY, minZ);
-  glVertex3f(maxX, maxY, maxZ);
-  glVertex3f(minX, maxY, maxZ);
-  // Bottom face
-  glVertex3f(minX, minY, minZ);
-  glVertex3f(maxX, minY, minZ);
-  glVertex3f(maxX, minY, maxZ);
-  glVertex3f(minX, minY, maxZ);
+    // Front face
+    glVertex3f(minX, minY, maxZ);
+    glVertex3f(maxX, minY, maxZ);
+    glVertex3f(maxX, maxY, maxZ);
+    glVertex3f(minX, maxY, maxZ);
+    // Back face
+    glVertex3f(minX, minY, minZ);
+    glVertex3f(maxX, minY, minZ);
+    glVertex3f(maxX, maxY, minZ);
+    glVertex3f(minX, maxY, minZ);
+    // Left face
+    glVertex3f(minX, minY, minZ);
+    glVertex3f(minX, minY, maxZ);
+    glVertex3f(minX, maxY, maxZ);
+    glVertex3f(minX, maxY, minZ);
+    // Right face
+    glVertex3f(maxX, minY, minZ);
+    glVertex3f(maxX, minY, maxZ);
+    glVertex3f(maxX, maxY, maxZ);
+    glVertex3f(maxX, maxY, minZ);
+    // Top face
+    glVertex3f(minX, maxY, minZ);
+    glVertex3f(maxX, maxY, minZ);
+    glVertex3f(maxX, maxY, maxZ);
+    glVertex3f(minX, maxY, maxZ);
+    // Bottom face
+    glVertex3f(minX, minY, minZ);
+    glVertex3f(maxX, minY, minZ);
+    glVertex3f(maxX, minY, maxZ);
+    glVertex3f(minX, minY, maxZ);
   glEnd();
 }
 
@@ -250,18 +256,23 @@ void initDisplayLists() {
 
   cactusList = glGenLists(4);
   glNewList(cactusList, GL_COMPILE);
-  glColor3f(0.0f, 0.5f, 0.0f); // Dark green
-    drawBox(50.0f, -400.0f, -425.0f, 100.0f, -225.0f, -375.0f);  // Main box
-    drawBox(0.0f, -312.5f, -425.0f, 50.0f, -292.5f, -375.0f);    // Left horizontal
-    drawBox(12.0f, -292.5f, -425.0f, 0.0f, -232.5f, -375.0f);   // Left upward (adjusted)
-    drawBox(100.0f, -268.75f, -425.0f, 150.0f, -248.75f, -375.0f); // Right horizontal
-    drawBox(150.0f, -248.75f, -425.0f, 162.0f, -188.75f, -375.0f); // Right upward (adjusted)
+    glColor3f(0.0f, 0.5f, 0.0f); // Dark green
+    // Box 1: Main box (Correct)
+    drawBox(50.0f, -400.0f, -425.0f, 100.0f, -225.0f, -375.0f);
+    // Box 2: Left horizontal arm (Correct)
+    drawBox(0.0f, -312.5f, -425.0f, 50.0f, -292.5f, -375.0f);
+    // Box 3: Left upward arm (FIXED: Reverted to original inward position [0, 12])
+    drawBox(0.0f, -292.5f, -425.0f, 12.0f, -232.5f, -375.0f); // <-- Fixed line
+    // Box 4: Right horizontal arm (Correct)
+    drawBox(100.0f, -268.75f, -425.0f, 150.0f, -248.75f, -375.0f);
+    // Box 5: Right upward arm (FIXED: Positioned inward relative to tip [138, 150])
+    drawBox(138.0f, -248.75f, -425.0f, 150.0f, -188.75f, -375.0f); // <-- Fixed line
   glEndList();
 }
 
 /**
  * The display callback function that renders the scene.
- * Clears the screen to yellow and draws the large and small fish at their initial positions
+ * Clears the screen to PANTONE Spun Sugar and draws the large and small fish at their initial positions
  * using their respective display lists. The large fish is centered at (0, 0, -400), and
  * the small fish is positioned 75 units from the tank's left and 50 units above the bottom,
  * approximated at (-325, -350, -400) relative to the coordinate system.
@@ -273,15 +284,16 @@ void displayCallback() {
 
   // Large fish
   glPushMatrix();
-  glTranslatef(fish_x, 0.0f, -400.0f); 
-  glRotatef(rotation_angle, 0.0f, 1.0f, 0.0f); // Rotate about y-axis
-  glCallList(largeFishList);
+    glTranslatef(fish_x, 0.0f, -400.0f); 
+    glRotatef(rotation_angle, 0.0f, 1.0f, 0.0f); // Rotate about y-axis
+    glCallList(largeFishList);
   glPopMatrix();
 
   // Small fish
   glPushMatrix();
-  glTranslatef(small_fish_center_x, small_fish_center_y, small_fish_center_z); // 75 units from left (-400), 50 units above bottom (-400)
-  glCallList(smallFishList);
+    // 75 units from left (-400), 50 units above bottom (-400)
+    glTranslatef(small_fish_center_x, small_fish_center_y, small_fish_center_z); 
+    glCallList(smallFishList);
   glPopMatrix();
 
   // Draw bubbles
@@ -289,17 +301,14 @@ void displayCallback() {
 
   for (size_t i = 0; i < bubbles.size(); i++) {
     glPushMatrix();
-
-    glTranslatef(bubbles[i].x, bubbles[i].y, bubbles[i].z);
-    glutWireSphere(5.0f, 10, 10); // Radius 5 = diameter 10, 10 slices/stacks
+      glTranslatef(bubbles[i].x, bubbles[i].y, bubbles[i].z);
+      glutWireSphere(5.0f, 10, 10); // Radius 5 = diameter 10, 10 slices/stacks
     glPopMatrix();
   } 
 
   glCallList(pauseButtonList);
-
   glCallList(cactusList);
-
-  glutSwapBuffers(); // Swap buffers for double-buffered animation
+  glutSwapBuffers(); 
 }
 
 /**
@@ -349,7 +358,7 @@ void timerFunc(int value) {
             break;
     }
 
-    // Bubble logic: Add a new bubble periodically
+    // Adds a new bubble periodically
     bubble_counter++;
     if (bubble_counter >= 24) { // Example: 1.2 seconds at 20 fps
         Bubble new_bubble = {small_fish_nose_x, small_fish_center_y, small_fish_center_z};
@@ -357,7 +366,7 @@ void timerFunc(int value) {
         bubble_counter = 0;
     }
 
-    // Update bubbles: Move upward by 5 units per frame
+    // Moves bubble upward by 5 units per frame
     for (size_t i = 0; i < bubbles.size(); ++i) {
         bubbles[i].y += 5.0f;
     }
@@ -383,6 +392,9 @@ void keyboardCallback(unsigned char key, int x, int y) {
   if (key == 'Q' || key == 'q') {
       exit(0); 
   }
+  if (key == 'P' || key == 'p') {
+    is_paused = !is_paused;
+  }
 }
 
 /**
@@ -390,34 +402,34 @@ void keyboardCallback(unsigned char key, int x, int y) {
  */
 void mouseCallback(int button, int state, int x, int y) {
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-      // Convert screen coordinates (0,0 at top-left) to tank coordinates (-400,400 at bottom-left)
-      float tank_x = (float)x * 800.0f / canvas_Width - 400.0f;
-      float tank_y = (float)(canvas_Height - y) * 800.0f / canvas_Height - 400.0f;
+    // Convert screen coordinates (0,0 at top-left) to tank coordinates (-400,400 at bottom-left)
+    float tank_x = (float)x * 800.0f / canvas_Width - 400.0f;
+    float tank_y = (float)(canvas_Height - y) * 800.0f / canvas_Height - 400.0f;
 
-      // Check if click is within button bounds
-      if (tank_x >= button_x && tank_x <= button_x + button_width &&
-          tank_y >= button_y && tank_y <= button_y + button_height) {
-          is_paused = !is_paused; // Toggle pause state
-      }
+    // Check if click is within button bounds
+    if (tank_x >= button_x && tank_x <= button_x + button_width &&
+        tank_y >= button_y && tank_y <= button_y + button_height) {
+        is_paused = !is_paused; // Toggle pause state
+    }
   }
 }
 
 char canvas_Name[] = "Aquarium Screen-Saver Simulation";
 
 int main(int argc, char ** argv) {
-    glutInit(&argc, argv);
-    my_setup(canvas_Width, canvas_Height, canvas_Name);
+  glutInit(&argc, argv);
+  my_setup(canvas_Width, canvas_Height, canvas_Name);
 
-    glutDisplayFunc(displayCallback);
-    glutKeyboardFunc(keyboardCallback);
-    glutMouseFunc(mouseCallback);
+  glutDisplayFunc(displayCallback);
+  glutKeyboardFunc(keyboardCallback);
+  glutMouseFunc(mouseCallback);
 
-    // Create the display list for the diamond.
-    initDisplayLists();
+  // Create the display list for the diamond.
+  initDisplayLists();
 
-    // Start the animation
-    glutTimerFunc(50, timerFunc, 0);
+  // Start the animation
+  glutTimerFunc(50, timerFunc, 0);
 
-    glutMainLoop();
-    return 0;
+  glutMainLoop();
+  return 0;
 }
