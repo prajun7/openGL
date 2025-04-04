@@ -14,9 +14,9 @@
  * running at approximately 20 Frame per second(FPS). Four states that are MOVING_LEFT, ROTATING_TO_RIGHT, 
  * MOVING_RIGHT, and ROTATING_TO_LEFT are used to determine the rotation and the direction the fish that it
  * needs to be moved based on its current position. The `keyboardCallback` detect the keyboard press to 
- * quit the simulation. Barycentric interpolation is used to calculate a smooth transition in the fish tail stripe, 
- * blending the color between yellow and deep blue, with a step size of 1.0f used for drawing the points 
- * along the stripe.
+ * quit the simulation. Barycentric interpolation is used to calculate a smooth transition in the fish tail 
+ * stripe, blending the color between yellow and deep blue, with a step size of 1.0f used for drawing 
+ * the points along the stripe.
  * 
  * EXTRA CREDIT ARCHITECTURE
  * The `timerFunc` adds bubbles into the array called `bubbles`, updates the position of it and
@@ -337,8 +337,8 @@ void displayCallback() {
 }
 
 /**
- * Timer callback to update the diamond's position.
- * It moves the diamond and triggers a redisplay.
+ * Timer callback to update the large fish's position and to set the
+ * rotation. It also creates the bubbles and store those in the bubble array.
  */
 void timerFunc(int value) {
   if (!is_paused) {
@@ -408,7 +408,7 @@ void timerFunc(int value) {
 }
 
 /**
- * Handles keyboard input to control the animation and movement of the diamond.
+ * Handles keyboard input to exit the simulation.
  *
  * Controls:
  * - Press 'Q' to quit.
@@ -423,7 +423,7 @@ void keyboardCallback(unsigned char key, int x, int y) {
 }
 
 /**
- * Mouse callback to handle pause button clicks
+ * Mouse callback to handle pause button clicks.
  */
 void mouseCallback(int button, int state, int x, int y) {
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
@@ -449,7 +449,7 @@ int main(int argc, char ** argv) {
   glutKeyboardFunc(keyboardCallback);
   glutMouseFunc(mouseCallback);
 
-  // Create the display list for the diamond.
+  // Create the display list for the fish tank simulation.
   initDisplayLists();
 
   // Start the animation
