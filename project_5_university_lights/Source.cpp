@@ -43,20 +43,28 @@ void drawCube(float x, float y, float z, bool solid) {
 /**
  * Creates the U letter using solid cubes.
  */
+/**
+ * Creates the U letter using 10 solid cubes.
+ * Total dimensions: 200x200 (4 cubes wide, 4 cubes high).
+ */
 void createULetter() {
-    glColor3f(0.0f, 0.75f, 1.0f); // Light blue color
-    // Left vertical bar of U (3 cubes)
-    drawCube(-125.0f, 0.0f, 0.0f, true);
-    drawCube(-125.0f, 50.0f, 0.0f, true);
-    drawCube(-125.0f, 100.0f, 0.0f, true);
-    // Bottom horizontal bar of U (3 cubes)
-    drawCube(-75.0f, 0.0f, 0.0f, true);
-    drawCube(-25.0f, 0.0f, 0.0f, true);
-    drawCube(25.0f, 0.0f, 0.0f, true);
-    // Right vertical bar of U (3 cubes)
-    drawCube(75.0f, 0.0f, 0.0f, true);
-    drawCube(75.0f, 50.0f, 0.0f, true);
-    drawCube(75.0f, 100.0f, 0.0f, true);
+  glColor3f(0.0f, 0.75f, 1.0f); 
+
+  // Left vertical column (4 cubes) - Center X = -75
+  drawCube(-75.0f, -75.0f, 0.0f, true); // Bottom
+  drawCube(-75.0f, -25.0f, 0.0f, true);
+  drawCube(-75.0f,  25.0f, 0.0f, true);
+  drawCube(-75.0f,  75.0f, 0.0f, true); // Top
+
+  // Bottom horizontal bar (2 cubes) - Center Y = -75
+  // These fill the gap between the left and right columns
+  drawCube(-25.0f, -75.0f, 0.0f, true); // Middle-left
+  drawCube( 25.0f, -75.0f, 0.0f, true); // Middle-right
+
+  drawCube( 75.0f, -75.0f, 0.0f, true); // Bottom
+  drawCube( 75.0f, -25.0f, 0.0f, true);
+  drawCube( 75.0f,  25.0f, 0.0f, true);
+  drawCube( 75.0f,  75.0f, 0.0f, true); // Top
 }
 
 /**
@@ -136,17 +144,6 @@ void initDisplayLists() {
 }
 
 /**
- * Idle callback that updates the rotation angle for animation.
- */
-void idleCallback() {
-    rotationAngle += 0.1f;
-    if (rotationAngle > 360.0f) {
-        rotationAngle -= 360.0f;
-    }
-    glutPostRedisplay();
-}
-
-/**
  * The display callback function that renders the animated scene.
  */
 void displayCallback() {
@@ -191,7 +188,7 @@ void keyboardCallback(unsigned char key, int x, int y) {
     }
 }
 
-char canvas_Name[] = "UAH 3D Letters Display - Animated";
+char canvas_Name[] = "University Lights";
 
 int main(int argc, char ** argv) {
     glutInit(&argc, argv);
@@ -200,7 +197,6 @@ int main(int argc, char ** argv) {
     
     glutDisplayFunc(displayCallback);
     glutKeyboardFunc(keyboardCallback);
-    glutIdleFunc(idleCallback);
     
     // Enable depth testing for proper 3D rendering.
     glEnable(GL_DEPTH_TEST);
