@@ -73,27 +73,45 @@ void createULetter() {
 void createALetter() {
   glColor3f(1.0f, 1.0f, 1.0f); // White color for wireframe
 
-  // Bottom row - boxes 1 and 2 (far apart)
-  drawCube(-75.0f, -75.0f, 0.0f, false); // Cube 1 (bottom left)
-  drawCube(75.0f, -75.0f, 0.0f, false);  // Cube 2 (bottom right)
-  
-  // Second row - boxes 3, 4, 5, 6 (more centered)
-  // Box 3 positioned so it starts from the middle of box 1
-  drawCube(-50.0f, -25.0f, 0.0f, false); // Cube 3 (offset from box 1)
-  drawCube(0.0f, -25.0f, 0.0f, false);   // Cube 4 (middle)
-  drawCube(25.0f, -25.0f, 0.0f, false);  // Cube 5
-  // Box 6 positioned so it starts from the middle of box 2
-  drawCube(50.0f, -25.0f, 0.0f, false);  // Cube 6 (offset from box 2)
-  
-  // Third row - boxes 7 and 8
-  // Box 7 positioned between boxes 3 and 4
-  drawCube(-25.0f, 25.0f, 0.0f, false);  // Cube 7 (between 3 and 4)
-  // Box 8 positioned between boxes 5 and 6
-  drawCube(50.0f, 25.0f, 0.0f, false);   // Cube 8 (between 5 and 6)
-  
-  // Top row - boxes 9 and 10
-  drawCube(-25.0f, 75.0f, 0.0f, false);  // Cube 9
-  drawCube(25.0f, 75.0f, 0.0f, false);   // Cube 10
+  // User specified bottom-left coords converted to center coords:
+  // Cube 1: (0, 0) -> (25, 25)
+  // Cube 2: (150, 0) -> (175, 25)
+  // Cube 3: (25, 50) -> (50, 75)
+  // Cube 4: (75, 50) -> (100, 75)
+  // Cube 5: (125, 50) -> (150, 75)
+  // Cube 6: (175, 50) -> (200, 75)
+  // Cube 7: (50, 100) -> (75, 125)
+  // Cube 8: (150, 100) -> (175, 125)
+  // Cube 9: (50, 150) -> (75, 175)
+  // Cube 10: (150, 150) -> (175, 175)
+
+  // Calculate center offset to center the whole letter around (0,0)
+  // X-range of centers: 25 to 200. Midpoint X = (25 + 200) / 2 = 112.5.
+  // Y-range of centers: 25 to 175. Midpoint Y = (25 + 175) / 2 = 100.0.
+  const float x_offset = 112.5f;
+  const float y_offset = 100.0f;
+  const float z_pos = 0.0f; // Keep all cubes in the same Z-plane locally
+
+  // Draw cubes using centered coordinates relative to local (0,0,0)
+  // Layer 1 (Bottom): Cubes 1, 2
+  drawCube( 25.0f - x_offset,  25.0f - y_offset, z_pos, false); // Cube 1
+  drawCube(175.0f - x_offset,  25.0f - y_offset, z_pos, false); // Cube 2
+
+  // Layer 2: Cubes 3, 4, 5, 6
+  drawCube( 50.0f - x_offset,  75.0f - y_offset, z_pos, false); // Cube 3
+  drawCube(100.0f - x_offset,  75.0f - y_offset, z_pos, false); // Cube 4
+  drawCube(150.0f - x_offset,  75.0f - y_offset, z_pos, false); // Cube 5
+  drawCube(200.0f - x_offset,  75.0f - y_offset, z_pos, false); // Cube 6
+
+  // Layer 3: Cubes 7, 8
+  drawCube( 75.0f - x_offset, 125.0f - y_offset, z_pos, false); // Cube 7
+  drawCube(175.0f - x_offset, 125.0f - y_offset, z_pos, false); // Cube 8
+
+  // Layer 4 (Top): Cubes 9, 10
+  drawCube( 75.0f - x_offset, 175.0f - y_offset, z_pos, false); // Cube 9
+  drawCube(175.0f - x_offset, 175.0f - y_offset, z_pos, false); // Cube 10
+
+  // Note: Sphere is removed as per the latest request focusing on cube layout.
 }
 
 /**
