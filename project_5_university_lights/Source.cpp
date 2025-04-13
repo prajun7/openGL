@@ -97,21 +97,43 @@ void createSphere() {
 }
 
 /**
- * Creates the H letter using solid cubes.
+ * Creates the H letter using 10 solid cubes.
+ * Total dimensions: 200x200 (4 cubes wide, 4 cubes high).
  */
 void createHLetter() {
-    glColor3f(0.0f, 0.75f, 1.0f); // Light blue color
-    // Left vertical bar of H (3 cubes)
-    drawCube(-75.0f, 0.0f, 0.0f, true);
-    drawCube(-75.0f, 50.0f, 0.0f, true);
-    drawCube(-75.0f, 100.0f, 0.0f, true);
-    // Middle horizontal bar of H (2 cubes)
-    drawCube(-25.0f, 50.0f, 0.0f, true);
-    drawCube(25.0f, 50.0f, 0.0f, true);
-    // Right vertical bar of H (3 cubes)
-    drawCube(75.0f, 0.0f, 0.0f, true);
-    drawCube(75.0f, 50.0f, 0.0f, true);
-    drawCube(75.0f, 100.0f, 0.0f, true);
+  glColor3f(0.0f, 0.75f, 1.0f); // Light blue color
+
+  // Define vertical center coordinates for the 4 rows of cubes
+  const float y_bottom = -75.0f;
+  const float y_mid_bottom = -25.0f;
+  const float y_mid_top = 25.0f;
+  const float y_top = 75.0f;
+
+  // Define horizontal center coordinates for the 4 columns of cubes
+  const float x_left = -75.0f;
+  const float x_mid_left = -25.0f;
+  const float x_mid_right = 25.0f;
+  const float x_right = 75.0f;
+
+  // Vertical center for the connecting bar
+  // Average of the two middle vertical centers (-25 and 25) is 0
+  const float y_connector_center = 0.0f;
+
+  // Left vertical column (4 cubes)
+  drawCube(x_left, y_bottom, 0.0f, true);
+  drawCube(x_left, y_mid_bottom, 0.0f, true);
+  drawCube(x_left, y_mid_top, 0.0f, true);
+  drawCube(x_left, y_top, 0.0f, true);
+
+  // Right vertical column (4 cubes)
+  drawCube(x_right, y_bottom, 0.0f, true);
+  drawCube(x_right, y_mid_bottom, 0.0f, true);
+  drawCube(x_right, y_mid_top, 0.0f, true);
+  drawCube(x_right, y_top, 0.0f, true);
+
+  // Middle horizontal connectors (2 cubes) - Centered vertically
+  drawCube(x_mid_left, y_connector_center, 0.0f, true); // Connect at y=0
+  drawCube(x_mid_right, y_connector_center, 0.0f, true); // Connect at y=0
 }
 
 /**
