@@ -23,6 +23,9 @@ GLuint sphereList;
 // Constant for cube size
 const float CUBE_SIZE = 50.0f;
 
+// Constant for sphere radius (diameter 50)
+const float SPHERE_RADIUS = 25.0f;
+
 // Global rotation angle for animation
 float rotationAngle = 0.0f;
 
@@ -110,6 +113,20 @@ void createALetter() {
   // Layer 4 (Top): Cubes 9, 10
   drawCube(-12.5f,  75.0f, z_pos, false); // Cube 9 (75.0 - 112.5, 175.0 - 100.0)
   drawCube( 37.5f,  75.0f, z_pos, false); // Cube 10 (175.0 - 112.5, 175.0 - 100.0)
+
+   // --- Draw Solid Red Sphere in the Gap ---
+   glColor3f(1.0f, 0.0f, 0.0f); // Red color
+
+   // Calculate center of the gap between Cube 7 (x=-37.5) and Cube 8 (x=62.5)
+   // Gap Center X = (-37.5 + 62.5) / 2 = 25.0 / 2 = 12.5
+   // Gap Center Y is the same as Cube 7 and 8's Y center = 25.0
+   const float sphere_center_x = 12.5f;
+   const float sphere_center_y = 25.0f; // c7y or c8y
+
+   glPushMatrix();
+     glTranslatef(sphere_center_x, sphere_center_y, z_pos);
+     glutSolidSphere(SPHERE_RADIUS, 30, 30); // Radius 25
+   glPopMatrix();
 }
 
 
