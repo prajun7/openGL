@@ -197,32 +197,49 @@ void initDisplayLists() {
  * The display callback function that renders the animated scene.
  */
 void displayCallback() {
-    // Clear the screen with a black background.
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // Clear the screen with a black background.
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glTranslatef(0.0f, 0.0f, -500.0f);
-    
-    // Draw the U letter.
-    glPushMatrix();
-      glTranslatef(-250.0f, 0.0f, 0.0f);
-      glCallList(uLetterList);
-    glPopMatrix();
-    
-    // Draw the A letter and the sphere.
-    glPushMatrix();
-      glTranslatef(0.0f, 0.0f, 0.0f);
-      glCallList(aLetterList);
-      glCallList(sphereList);
-    glPopMatrix();
-    
-    // Draw the H letter.
-    glPushMatrix();
-      glTranslatef(250.0f, 0.0f, 0.0f);
-      glCallList(hLetterList);
-    glPopMatrix();
-    
-    glutSwapBuffers();
+  glTranslatef(0.0f, 0.0f, -500.0f); 
+
+  const float u_width = 200.0f;
+  const float a_width = 250.0f; 
+  const float h_width = 200.0f;
+  const float gap = 50.0f;
+
+  // Calculate total width to center the block
+  const float total_width = u_width + gap + a_width + gap + h_width;
+  const float start_x = -total_width / 2.0f; // 
+
+  const float u_center_x = start_x + u_width / 2.0f;               
+  const float a_center_x = u_center_x + u_width / 2.0f + gap + a_width / 2.0f; 
+  const float h_center_x = a_center_x + a_width / 2.0f + gap + h_width / 2.0f; 
+
+  const float local_base_y = -100.0f;
+  const float target_base_y = -200.0f;
+  const float center_y = target_base_y - local_base_y;
+
+  // Draw the U letter.
+  glPushMatrix();
+    glTranslatef(u_center_x, center_y, 0.0f); // Apply calculated X and Y translation
+    glCallList(uLetterList);
+  glPopMatrix();
+
+  // Draw the A letter.
+  glPushMatrix();
+    glTranslatef(a_center_x, center_y, 0.0f); // Apply calculated X and Y translation
+    glCallList(aLetterList);
+    // glCallList(sphereList); // Sphere is likely not part of A anymore
+  glPopMatrix();
+
+  // Draw the H letter.
+  glPushMatrix();
+    glTranslatef(h_center_x, center_y, 0.0f); // Apply calculated X and Y translation
+    glCallList(hLetterList);
+  glPopMatrix();
+
+  glutSwapBuffers();
 }
 
 /**
