@@ -71,18 +71,35 @@ void createULetter() {
  * Creates the A letter using wireframe cubes.
  */
 void createALetter() {
-    glColor3f(1.0f, 1.0f, 1.0f); // White color for wireframe
-    // Left diagonal bar of A (3 cubes)
-    drawCube(-50.0f, 0.0f, 0.0f, false);
-    drawCube(-25.0f, 50.0f, 0.0f, false);
-    drawCube(0.0f, 100.0f, 0.0f, false);
-    // Right diagonal bar of A (2 cubes)
-    drawCube(50.0f, 0.0f, 0.0f, false);
-    drawCube(25.0f, 50.0f, 0.0f, false);
-    // Middle horizontal bar of A (3 cubes)
-    drawCube(-25.0f, 25.0f, 0.0f, false);
-    drawCube(0.0f, 25.0f, 0.0f, false);
-    drawCube(25.0f, 25.0f, 0.0f, false);
+  // --- Draw Wireframe Cubes ---
+  glColor3f(1.0f, 1.0f, 1.0f); // White color for wireframe
+
+  // Define vertical center coordinates for the 4 rows of cubes
+  const float y_layer1 = -75.0f; // Bottom layer
+  const float y_layer2 = -25.0f;
+  const float y_layer3 =  25.0f;
+  const float y_layer4 =  75.0f; // Top layer
+
+  // Define horizontal center coordinates based on max width of 3 cubes
+  const float x_side = -50.0f; // Center for side cubes
+  const float x_center = 0.0f; // Center for middle cube
+  const float x_other_side = 50.0f; // Center for other side cubes
+
+  // Layer 1 (Bottom, y=-75): 2 cubes
+  drawCube(x_side,       y_layer1, 0.0f, false);
+  drawCube(x_other_side, y_layer1, 0.0f, false);
+
+  // Layer 2 (y=-25): 3 cubes
+  drawCube(x_side,       y_layer2, 0.0f, false);
+  drawCube(x_center,     y_layer2, 0.0f, false);
+  drawCube(x_other_side, y_layer2, 0.0f, false);
+
+  // Layer 3 (y=25): 2 cubes
+  drawCube(x_side,       y_layer3, 0.0f, false);
+  drawCube(x_other_side, y_layer3, 0.0f, false);
+
+  // Layer 4 (Top, y=75): 1 cube
+  drawCube(x_center,     y_layer4, 0.0f, false);
 }
 
 /**
