@@ -130,8 +130,8 @@ void createALetter() {
 }
 
 /**
- * Creates the triangular spindle geometry.
- * Base width 50, height 75. Drawn relative to its base center at (0,0,0).
+ * Creates the inverted triangular spindle geometry with base pointing upwards.
+ * Base width 50, height 75. Drawn relative to its tip at (0,0,0).
  */
 void createSpindle() {
   glColor3f(0.5f, 0.5f, 0.5f); // Gray color for the spindle
@@ -142,10 +142,10 @@ void createSpindle() {
   const float z_pos = 0.0f; // Keep in the same Z-plane
 
   glBegin(GL_TRIANGLES);
-    // Define vertices relative to the center of the base (0,0)
-    glVertex3f(0.0f, height, z_pos);       // Tip (Top vertex)
-    glVertex3f(-half_base, 0.0f, z_pos);   // Base Left vertex
-    glVertex3f(half_base, 0.0f, z_pos);    // Base Right vertex
+    // Define vertices relative to the tip (0,0)
+    glVertex3f(0.0f, 0.0f, z_pos);        // Tip (at the local origin)
+    glVertex3f(-half_base, height, z_pos); // Base Left vertex (above the tip)
+    glVertex3f(half_base, height, z_pos);  // Base Right vertex (above the tip)
   glEnd();
 }
 
