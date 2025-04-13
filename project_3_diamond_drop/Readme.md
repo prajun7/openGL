@@ -1,5 +1,7 @@
 # Diamond Drop
 
+https://github.com/user-attachments/assets/04f05a98-3b4d-4feb-80de-c64dc79396af
+
 ## OpenGL Project Setup on macOS
 
 To successfully run this project, follow the steps below. This guide assumes you're working on macOS and that you have **Homebrew** installed for package management.
