@@ -18,7 +18,6 @@
 GLuint uLetterList;
 GLuint aLetterList;
 GLuint hLetterList;
-GLuint sphereList;
 
 // Constant for cube size
 const float CUBE_SIZE = 50.0f;
@@ -197,12 +196,6 @@ void initDisplayLists() {
       createALetter();
     glEndList();
     
-    // Create display list for the sphere in A.
-    sphereList = glGenLists(1);
-    glNewList(sphereList, GL_COMPILE);
-      createSphere();
-    glEndList();
-    
     // Create display list for the H letter.
     hLetterList = glGenLists(1);
     glNewList(hLetterList, GL_COMPILE);
@@ -247,7 +240,6 @@ void displayCallback() {
   glPushMatrix();
     glTranslatef(a_center_x, center_y, 0.0f); // Apply calculated X and Y translation
     glCallList(aLetterList);
-    // glCallList(sphereList); // Sphere is likely not part of A anymore
   glPopMatrix();
 
   // Draw the H letter.
