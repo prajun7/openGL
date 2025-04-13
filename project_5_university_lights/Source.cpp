@@ -150,12 +150,8 @@ void displayCallback() {
     // Clear the screen with a black background.
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    glLoadIdentity();
-    // Move the camera away from the origin.
+
     glTranslatef(0.0f, 0.0f, -500.0f);
-    // Apply the rotation animation.
-    glRotatef(rotationAngle, 0.0f, 1.0f, 0.0f);
     
     // Draw the U letter.
     glPushMatrix();
