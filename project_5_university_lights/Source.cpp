@@ -18,6 +18,7 @@
 GLuint uLetterList;
 GLuint aLetterList;
 GLuint hLetterList;
+GLuint spindleList;
 
 // Constant for cube size
 const float CUBE_SIZE = 50.0f;
@@ -128,16 +129,24 @@ void createALetter() {
    glPopMatrix();
 }
 
-
 /**
- * Creates the red sphere inside the A letter.
+ * Creates the triangular spindle geometry.
+ * Base width 50, height 75. Drawn relative to its base center at (0,0,0).
  */
-void createSphere() {
-    glColor3f(1.0f, 0.0f, 0.0f); // Red color
-    glPushMatrix();
-      glTranslatef(0.0f, 50.0f, 0.0f); // Position in the "hole" of A
-      glutSolidSphere(25.0f, 30, 30); // Diameter of 50 units
-    glPopMatrix();
+void createSpindle() {
+  glColor3f(0.5f, 0.5f, 0.5f); // Gray color for the spindle
+
+  const float base_width = 50.0f;
+  const float height = 75.0f;
+  const float half_base = base_width / 2.0f;
+  const float z_pos = 0.0f; // Keep in the same Z-plane
+
+  glBegin(GL_TRIANGLES);
+    // Define vertices relative to the center of the base (0,0)
+    glVertex3f(0.0f, height, z_pos);       // Tip (Top vertex)
+    glVertex3f(-half_base, 0.0f, z_pos);   // Base Left vertex
+    glVertex3f(half_base, 0.0f, z_pos);    // Base Right vertex
+  glEnd();
 }
 
 /**
@@ -191,13 +200,18 @@ void initDisplayLists() {
     glEndList();
     
     // Create display list for the A letter.
-    aLetterList = glGenLists(1);
+    aLetterList = glGenLists(2);
     glNewList(aLetterList, GL_COMPILE);
       createALetter();
     glEndList();
+
+    spindleList = glGenLists(3); // Assign index to spindleList
+    glNewList(spindleList, GL_COMPILE);
+      createSpindle(); // Compile the spindle drawing function
+    glEndList();
     
     // Create display list for the H letter.
-    hLetterList = glGenLists(1);
+    hLetterList = glGenLists(4);
     glNewList(hLetterList, GL_COMPILE);
       createHLetter();
     glEndList();
@@ -236,11 +250,27 @@ void displayCallback() {
     glCallList(uLetterList);
   glPopMatrix();
 
-  // Draw the A letter.
-  glPushMatrix();
-    glTranslatef(a_center_x, center_y, 0.0f); // Apply calculated X and Y translation
-    glCallList(aLetterList);
-  glPopMatrix();
+     // Draw the A letter and the Spindle.
+     glPushMatrix();
+     glTranslatef(a_center_x, center_y, 0.0f); // Move to A's centered position
+     glCallList(aLetterList); // Draw the A (cubes + sphere)
+
+     // Add Spindle
+     // Calculate position for the spindle's base center relative to A's center (0,0)
+     // Gap between cube 9 (x=-12.5) & 10 (x=37.5) -> Midpoint X = 12.5
+     // Top surface of cubes 9/10 is at local Y = 75 + 25 = 100
+     const float spindle_base_x = 12.5f;
+     const float spindle_base_y = 100.0f;
+     const float spindle_base_z = 0.0f;
+
+     glPushMatrix(); // Isolate spindle transformation
+       glTranslatef(spindle_base_x, spindle_base_y, spindle_base_z); // Position spindle base center
+       glCallList(spindleList); // Draw the spindle
+     glPopMatrix(); // Restore matrix before spindle translation
+     // End Spindle
+
+   glPopMatrix(); // Restore matrix before A's translation
+
 
   // Draw the H letter.
   glPushMatrix();
