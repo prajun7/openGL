@@ -88,31 +88,29 @@ void createALetter() {
   // Calculate center offset to center the whole letter around (0,0)
   // X-range of centers: 25 to 200. Midpoint X = (25 + 200) / 2 = 112.5.
   // Y-range of centers: 25 to 175. Midpoint Y = (25 + 175) / 2 = 100.0.
-  const float x_offset = 112.5f;
-  const float y_offset = 100.0f;
+  // const float x_offset = 112.5f; // Removed
+  // const float y_offset = 100.0f; // Removed
   const float z_pos = 0.0f; // Keep all cubes in the same Z-plane locally
 
-  // Draw cubes using centered coordinates relative to local (0,0,0)
+  // Draw cubes using pre-calculated centered coordinates relative to local (0,0,0)
   // Layer 1 (Bottom): Cubes 1, 2
-  drawCube( 25.0f - x_offset,  25.0f - y_offset, z_pos, false); // Cube 1
-  drawCube(175.0f - x_offset,  25.0f - y_offset, z_pos, false); // Cube 2
+  drawCube(-87.5f, -75.0f, z_pos, false); // Cube 1 
+  drawCube( 112.5f, -75.0f, z_pos, false); // Cube 2 
 
   // Layer 2: Cubes 3, 4, 5, 6
-  drawCube( 50.0f - x_offset,  75.0f - y_offset, z_pos, false); // Cube 3
-  drawCube(100.0f - x_offset,  75.0f - y_offset, z_pos, false); // Cube 4
-  drawCube(150.0f - x_offset,  75.0f - y_offset, z_pos, false); // Cube 5
-  drawCube(200.0f - x_offset,  75.0f - y_offset, z_pos, false); // Cube 6
+  drawCube(-62.5f, -25.0f, z_pos, false); // Cube 3 (50.0 - 112.5, 75.0 - 100.0)
+  drawCube(-12.5f, -25.0f, z_pos, false); // Cube 4 (100.0 - 112.5, 75.0 - 100.0)
+  drawCube( 87.5f, -25.0f, z_pos, false); // Cube 6 (200.0 - 112.5, 75.0 - 100.0)
 
   // Layer 3: Cubes 7, 8
-  drawCube( 75.0f - x_offset, 125.0f - y_offset, z_pos, false); // Cube 7
-  drawCube(175.0f - x_offset, 125.0f - y_offset, z_pos, false); // Cube 8
+  drawCube(-37.5f,  25.0f, z_pos, false); // Cube 7 (75.0 - 112.5, 125.0 - 100.0)
+  drawCube( 62.5f,  25.0f, z_pos, false); // Cube 8 (175.0 - 112.5, 125.0 - 100.0)
 
   // Layer 4 (Top): Cubes 9, 10
-  drawCube( 75.0f - x_offset, 175.0f - y_offset, z_pos, false); // Cube 9
-  drawCube(175.0f - x_offset, 175.0f - y_offset, z_pos, false); // Cube 10
-
-  // Note: Sphere is removed as per the latest request focusing on cube layout.
+  drawCube(-12.5f,  75.0f, z_pos, false); // Cube 9 (75.0 - 112.5, 175.0 - 100.0)
+  drawCube( 37.5f,  75.0f, z_pos, false); // Cube 10 (175.0 - 112.5, 175.0 - 100.0)
 }
+
 
 /**
  * Creates the red sphere inside the A letter.
