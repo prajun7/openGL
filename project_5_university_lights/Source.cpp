@@ -76,24 +76,7 @@ void createULetter() {
 void createALetter() {
   glColor3f(1.0f, 1.0f, 1.0f); // White color for wireframe
 
-  // User specified bottom-left coords converted to center coords:
-  // Cube 1: (0, 0) -> (25, 25)
-  // Cube 2: (150, 0) -> (175, 25)
-  // Cube 3: (25, 50) -> (50, 75)
-  // Cube 4: (75, 50) -> (100, 75)
-  // Cube 5: (125, 50) -> (150, 75)
-  // Cube 6: (175, 50) -> (200, 75)
-  // Cube 7: (50, 100) -> (75, 125)
-  // Cube 8: (150, 100) -> (175, 125)
-  // Cube 9: (50, 150) -> (75, 175)
-  // Cube 10: (150, 150) -> (175, 175)
-
-  // Calculate center offset to center the whole letter around (0,0)
-  // X-range of centers: 25 to 200. Midpoint X = (25 + 200) / 2 = 112.5.
-  // Y-range of centers: 25 to 175. Midpoint Y = (25 + 175) / 2 = 100.0.
-  // const float x_offset = 112.5f; // Removed
-  // const float y_offset = 100.0f; // Removed
-  const float z_pos = 0.0f; // Keep all cubes in the same Z-plane locally
+  const float z_pos = 0.0f; 
 
   // Draw cubes using pre-calculated centered coordinates relative to local (0,0,0)
   // Layer 1 (Bottom): Cubes 1, 2
@@ -125,7 +108,7 @@ void createALetter() {
 
    glPushMatrix();
      glTranslatef(sphere_center_x, sphere_center_y, z_pos);
-     glutSolidSphere(SPHERE_RADIUS, 30, 30); // Radius 25
+     glutSolidSphere(SPHERE_RADIUS, 30, 30);
    glPopMatrix();
 }
 
