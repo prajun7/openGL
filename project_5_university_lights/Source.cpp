@@ -51,7 +51,16 @@ void drawCube(float x, float y, float z, bool solid) {
  * Total dimensions: 200x200 (4 cubes wide, 4 cubes high).
  */
 void createULetter() {
-  glColor3f(0.0f, 0.75f, 1.0f); 
+  // UAH blue from brand guide: RGB = (0,119,200) → (0.0,0.467,0.784) :contentReference[oaicite:0]{index=0}
+  GLfloat amb[]  = { 0.0f, 0.0467f, 0.0784f, 1.0f };  // 10% of diffuse
+  GLfloat diff[] = { 0.0f, 119/255.0f, 200/255.0f, 1.0f };
+  GLfloat spec[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+  GLfloat shin  = 100.0f;  // tight, bright highlights
+
+  glMaterialfv(GL_FRONT, GL_AMBIENT,   amb);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff);
+  glMaterialfv(GL_FRONT, GL_SPECULAR,  spec);
+  glMaterialf (GL_FRONT, GL_SHININESS, shin);
 
   // Left vertical column (4 cubes) - Center X = -75
   drawCube(-75.0f, -75.0f, 0.0f, true); // Bottom
@@ -74,7 +83,16 @@ void createULetter() {
  * Creates the A letter using wireframe cubes.
  */
 void createALetter() {
-  glColor3f(1.0f, 1.0f, 1.0f); // White color for wireframe
+  // Silver‑like wireframe material
+  GLfloat amb1[]  = { 0.2f, 0.2f, 0.2f, 1.0f };
+  GLfloat diff1[] = { 0.75f,0.75f,0.75f,1.0f };
+  GLfloat spec1[] = { 0.9f, 0.9f, 0.9f, 1.0f };
+  GLfloat shin1  = 50.0f;  // moderate shininess
+
+  glMaterialfv(GL_FRONT, GL_AMBIENT,   amb1);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff1);
+  glMaterialfv(GL_FRONT, GL_SPECULAR,  spec1);
+  glMaterialf (GL_FRONT, GL_SHININESS, shin1);
 
   const float z_pos = 0.0f; 
 
@@ -97,8 +115,16 @@ void createALetter() {
   drawCube(-12.5f,  75.0f, z_pos, false); // Cube 9 (75.0 - 112.5, 175.0 - 100.0)
   drawCube( 37.5f,  75.0f, z_pos, false); // Cube 10 (175.0 - 112.5, 175.0 - 100.0)
 
-   // --- Draw Solid Red Sphere in the Gap ---
-   glColor3f(1.0f, 0.0f, 0.0f); // Red color
+  // Now for candy‑apple‑red sphere: hex #FF0800 → (1.0, 0.031, 0.0) 
+  GLfloat amb2[]  = { 0.1f, 0.003f, 0.0f, 1.0f };
+  GLfloat diff2[] = { 1.0f,   8/255.0f, 0.0f, 1.0f };
+  GLfloat spec2[] = { 1.0f,   1.0f,     1.0f, 1.0f };
+  GLfloat shin2  = 100.0f;  // very shiny
+
+  glMaterialfv(GL_FRONT, GL_AMBIENT,   amb2);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff2);
+  glMaterialfv(GL_FRONT, GL_SPECULAR,  spec2);
+  glMaterialf (GL_FRONT, GL_SHININESS, shin2);
 
    // Calculate center of the gap between Cube 7 (x=-37.5) and Cube 8 (x=62.5)
    // Gap Center X = (-37.5 + 62.5) / 2 = 25.0 / 2 = 12.5
@@ -117,7 +143,15 @@ void createALetter() {
  * Base width 50, height 75. Drawn relative to its tip at (0,0,0).
  */
 void createSpindle() {
-  glColor3f(0.5f, 0.5f, 0.5f); // Gray color for the spindle
+  GLfloat amb[]  = { 0.1f, 0.1f, 0.1f, 1.0f };
+  GLfloat diff[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+  GLfloat spec[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+  GLfloat shin  = 10.0f;  // very broad, dull highlights
+
+  glMaterialfv(GL_FRONT, GL_AMBIENT,   amb);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff);
+  glMaterialfv(GL_FRONT, GL_SPECULAR,  spec);
+  glMaterialf (GL_FRONT, GL_SHININESS, shin);
 
   const float base_width = 50.0f;
   const float height = 75.0f;
@@ -137,7 +171,16 @@ void createSpindle() {
  * Total dimensions: 200x200 (4 cubes wide, 4 cubes high).
  */
 void createHLetter() {
-  glColor3f(0.0f, 0.75f, 1.0f); // Light blue color
+  // UAH blue from brand guide: RGB = (0,119,200) → (0.0,0.467,0.784) :contentReference[oaicite:0]{index=0}
+  GLfloat amb[]  = { 0.0f, 0.0467f, 0.0784f, 1.0f };  // 10% of diffuse
+  GLfloat diff[] = { 0.0f, 119/255.0f, 200/255.0f, 1.0f };
+  GLfloat spec[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+  GLfloat shin  = 100.0f;  // tight, bright highlights
+
+  glMaterialfv(GL_FRONT, GL_AMBIENT,   amb);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff);
+  glMaterialfv(GL_FRONT, GL_SPECULAR,  spec);
+  glMaterialf (GL_FRONT, GL_SHININESS, shin);
 
   // Define vertical center coordinates for the 4 rows of cubes
   const float y_bottom = -75.0f;
@@ -198,6 +241,22 @@ void initDisplayLists() {
     glNewList(hLetterList, GL_COMPILE);
       createHLetter();
     glEndList();
+}
+
+void initLighting() {
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+
+  // Light properties: viewer and light coincident at world origin
+  GLfloat lightPos[]    = { 0.0f, 0.0f, 0.0f, 1.0f };
+  GLfloat lightAmb[]    = { 0.1f, 0.1f, 0.1f, 1.0f };  // low background‑style ambient
+  GLfloat lightDiff[]   = { 0.8f, 0.8f, 0.8f, 1.0f };  // strong general diffuse
+  GLfloat lightSpec[]   = { 1.0f, 1.0f, 1.0f, 1.0f };  // white specular
+
+  glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+  glLightfv(GL_LIGHT0, GL_AMBIENT,  lightAmb);
+  glLightfv(GL_LIGHT0, GL_DIFFUSE,  lightDiff);
+  glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpec);
 }
 
 /**
@@ -299,6 +358,7 @@ int main(int argc, char ** argv) {
     
     // Create the display lists for the U, A, H letters.
     initDisplayLists();
+    initLighting();
     
     glutMainLoop();
     return 0;
