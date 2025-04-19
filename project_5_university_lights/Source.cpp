@@ -201,68 +201,69 @@ void initDisplayLists() {
 }
 
 /**
- * The display callback function that renders the animated scene.
+ * The display callback function that renders the animated scene,
+ * rotating the entire U‑A‑H characters about the spindle axis.
  */
 void displayCallback() {
-  // Clear the screen with a black background.
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  // Clear
+  glClearColor(0,0,0,1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glTranslatef(0.0f, 0.0f, -500.0f); 
+  // Reset MV
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
 
-  const float u_width = 200.0f;
-  const float a_width = 250.0f; 
-  const float h_width = 200.0f;
-  const float gap = 50.0f;
-
-  // Calculate total width to center the block
-  const float total_width = u_width + gap + a_width + gap + h_width;
-  const float start_x = -total_width / 2.0f; // 
-
-  const float u_center_x = start_x + u_width / 2.0f;               
-  const float a_center_x = u_center_x + u_width / 2.0f + gap + a_width / 2.0f; 
-  const float h_center_x = a_center_x + a_width / 2.0f + gap + h_width / 2.0f; 
-
-  const float local_base_y = -100.0f;
-  const float target_base_y = -200.0f;
-  const float center_y = target_base_y - local_base_y;
-
-  // Draw the U letter.
+  // --- rotation about (10,0,-400) ---
   glPushMatrix();
-    glTranslatef(u_center_x, center_y, 0.0f); // Apply calculated X and Y translation
-    glCallList(uLetterList);
-  glPopMatrix();
+    // 1) pull the whole scene back so that z=0 → z=-400 in world
+    glTranslatef(0.0f, 0.0f, -400.0f);
 
-     // Draw the A letter and the Spindle.
-     glPushMatrix();
-     glTranslatef(a_center_x, center_y, 0.0f); // Move to A's centered position
-     glCallList(aLetterList); // Draw the A (cubes + sphere)
+    // 2) move pivot to origin in camera‑space: pivot is now at (10,0,0)
+    glTranslatef(10.0f, 0.0f, 0.0f);
 
-     // Add Spindle
-     // Calculate position for the spindle's base center relative to A's center (0,0)
-     // Gap between cube 9 (x=-12.5) & 10 (x=37.5) -> Midpoint X = 12.5
-     // Top surface of cubes 9/10 is at local Y = 75 + 25 = 100
-     const float spindle_base_x = 12.5f;
-     const float spindle_base_y = 100.0f;
-     const float spindle_base_z = 0.0f;
+    // 3) rotate CCW around Y
+    glRotatef(rotationAngle, 0.0f, 1.0f, 0.0f);
 
-     glPushMatrix(); // Isolate spindle transformation
-       glTranslatef(spindle_base_x, spindle_base_y, spindle_base_z); // Position spindle base center
-       glCallList(spindleList); // Draw the spindle
-     glPopMatrix(); // Restore matrix before spindle translation
-     // End Spindle
+    // 4) move pivot back
+    glTranslatef(-10.0f, 0.0f, 0.0f);
 
-   glPopMatrix(); // Restore matrix before A's translation
+    // --- draw the letters (all at z=0, which is world z=-400) ---
+    const float u_width = 200, a_width = 250, h_width = 200, gap = 50;
+    const float total = u_width + gap + a_width + gap + h_width;
+    const float start_x = -total * 0.5f;
+    const float u_cx = start_x + u_width * 0.5f;
+    const float a_cx = u_cx + u_width * 0.5f + gap + a_width * 0.5f;
+    const float h_cx = a_cx + a_width * 0.5f + gap + h_width * 0.5f;
+    const float center_y = (-200.0f) - (-100.0f);
 
+    // U
+    glPushMatrix();
+      glTranslatef(u_cx, center_y, 0.0f);
+      glCallList(uLetterList);
+    glPopMatrix();
 
-  // Draw the H letter.
-  glPushMatrix();
-    glTranslatef(h_center_x, center_y, 0.0f); // Apply calculated X and Y translation
-    glCallList(hLetterList);
-  glPopMatrix();
+    // A + sphere + spindle
+    glPushMatrix();
+      glTranslatef(a_cx, center_y, 0.0f);
+      glCallList(aLetterList);
+      glPushMatrix();
+        glTranslatef(12.5f, 100.0f, 0.0f);
+        glCallList(spindleList);
+      glPopMatrix();
+    glPopMatrix();
+
+    // H
+    glPushMatrix();
+      glTranslatef(h_cx, center_y, 0.0f);
+      glCallList(hLetterList);
+    glPopMatrix();
+
+  glPopMatrix();  // end rotating block
 
   glutSwapBuffers();
 }
+
 
 /**
  * Handles keyboard input to exit the program.
@@ -271,6 +272,14 @@ void keyboardCallback(unsigned char key, int x, int y) {
     if (key == 'Q' || key == 'q') {
         exit(0);
     }
+}
+
+void timerCallback(int value) {
+  rotationAngle += 4.0f;
+  if (rotationAngle >= 360.0f) rotationAngle -= 360.0f;
+  glutPostRedisplay();
+  // 90 steps × 4° = 360° over 2000 ms → ∼22 ms per step
+  glutTimerFunc(22, timerCallback, 0);
 }
 
 char canvas_Name[] = "University Lights";
@@ -282,6 +291,8 @@ int main(int argc, char ** argv) {
     
     glutDisplayFunc(displayCallback);
     glutKeyboardFunc(keyboardCallback);
+
+    glutTimerFunc(22, timerCallback, 0);
     
     // Enable depth testing for proper 3D rendering.
     glEnable(GL_DEPTH_TEST);
