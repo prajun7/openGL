@@ -205,63 +205,64 @@ void initDisplayLists() {
  * rotating the entire U‑A‑H characters about the spindle axis.
  */
 void displayCallback() {
-  // Clear
-  glClearColor(0,0,0,1);
+  // Clear the screen
+  glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // Reset MV
+  // Reset model‑view
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  // --- rotation about (10,0,-400) ---
+  // 1) Pull the whole scene back so world‑Z = -400 lies at camera Z = 0
+  glTranslatef(0.0f, 0.0f, -400.0f);
+
+  // --- Draw the static spindle at world (10,0,-400) ---
   glPushMatrix();
-    // 1) pull the whole scene back so that z=0 → z=-400 in world
-    glTranslatef(0.0f, 0.0f, -400.0f);
+    glTranslatef(10.0f, 0.0f, 0.0f);     // pivot in camera space
+    glCallList(spindleList);
+  glPopMatrix();
 
-    // 2) move pivot to origin in camera‑space: pivot is now at (10,0,0)
+  // --- Rotate only the letters (U, A, H and the red sphere) around that pivot ---
+  glPushMatrix();
+    // Move pivot to origin
     glTranslatef(10.0f, 0.0f, 0.0f);
-
-    // 3) rotate CCW around Y
+    // Apply rotation
     glRotatef(rotationAngle, 0.0f, 1.0f, 0.0f);
-
-    // 4) move pivot back
+    // Move pivot back
     glTranslatef(-10.0f, 0.0f, 0.0f);
 
-    // --- draw the letters (all at z=0, which is world z=-400) ---
-    const float u_width = 200, a_width = 250, h_width = 200, gap = 50;
-    const float total = u_width + gap + a_width + gap + h_width;
-    const float start_x = -total * 0.5f;
+    // Compute centers
+    const float u_width = 200.0f, a_width = 250.0f, h_width = 200.0f, gap = 50.0f;
+    const float total_w = u_width + gap + a_width + gap + h_width;
+    const float start_x = -total_w * 0.5f;
     const float u_cx = start_x + u_width * 0.5f;
     const float a_cx = u_cx + u_width * 0.5f + gap + a_width * 0.5f;
     const float h_cx = a_cx + a_width * 0.5f + gap + h_width * 0.5f;
     const float center_y = (-200.0f) - (-100.0f);
 
-    // U
+    // Draw U
     glPushMatrix();
       glTranslatef(u_cx, center_y, 0.0f);
       glCallList(uLetterList);
     glPopMatrix();
 
-    // A + sphere + spindle
+    // Draw A + red sphere (but no spindle inside here)
     glPushMatrix();
       glTranslatef(a_cx, center_y, 0.0f);
       glCallList(aLetterList);
-      glPushMatrix();
-        glTranslatef(12.5f, 100.0f, 0.0f);
-        glCallList(spindleList);
-      glPopMatrix();
     glPopMatrix();
 
-    // H
+    // Draw H
     glPushMatrix();
       glTranslatef(h_cx, center_y, 0.0f);
       glCallList(hLetterList);
     glPopMatrix();
+  glPopMatrix();
 
-  glPopMatrix();  // end rotating block
-
+  // Swap buffers
   glutSwapBuffers();
 }
+
 
 
 /**
