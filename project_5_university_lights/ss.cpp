@@ -1,4 +1,4 @@
-/** CS 545 Prog. 5 for Dylan Wright  
+/** 
  *  EXTRA CREDIT: Scene shifts (U/N keys)  
  *               and light control (K/L keys)  
  *  
