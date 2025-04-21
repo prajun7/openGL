@@ -29,6 +29,10 @@ const float SPHERE_RADIUS = 25.0f;
 // Global rotation angle for animation
 float rotationAngle = 0.0f;
 
+float sceneYOffset = 0.0f;
+
+float lightIntensity = 1.0f;
+
 /**
  * Draws a cube at the specified position.
  */
@@ -51,11 +55,10 @@ void drawCube(float x, float y, float z, bool solid) {
  * Total dimensions: 200x200 (4 cubes wide, 4 cubes high).
  */
 void createULetter() {
-  // UAH blue from brand guide: RGB = (0,119,200) → (0.0,0.467,0.784) :contentReference[oaicite:0]{index=0}
-  GLfloat amb[]  = { 0.0f, 0.0467f, 0.0784f, 1.0f };  // 10% of diffuse
-  GLfloat diff[] = { 0.0f, 119/255.0f, 200/255.0f, 1.0f };
+  GLfloat amb[]  = { 0.0f, 0.467f, 0.784f, 1.0f };  
+  GLfloat diff[] = { 0.0f, 0.498f, 1.0f, 1.0f };
   GLfloat spec[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-  GLfloat shin  = 100.0f;  // tight, bright highlights
+  GLfloat shin  = 60.0f; 
 
   glMaterialfv(GL_FRONT, GL_AMBIENT,   amb);
   glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff);
@@ -77,6 +80,54 @@ void createULetter() {
   drawCube( 75.0f, -25.0f, 0.0f, true);
   drawCube( 75.0f,  25.0f, 0.0f, true);
   drawCube( 75.0f,  75.0f, 0.0f, true); // Top
+}
+
+/**
+ * Creates the H letter using 10 solid cubes.
+ * Total dimensions: 200x200 (4 cubes wide, 4 cubes high).
+ */
+void createHLetter() {
+  GLfloat amb[]  = { 0.0f, 0.467f, 0.784f, 1.0f };  
+  GLfloat diff[] = { 0.0f, 0.498f, 1.0f, 1.0f };
+  GLfloat spec[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+  GLfloat shin  = 100.0f; 
+
+  glMaterialfv(GL_FRONT, GL_AMBIENT,   amb);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff);
+  glMaterialfv(GL_FRONT, GL_SPECULAR,  spec);
+  glMaterialf (GL_FRONT, GL_SHININESS, shin);
+
+  // Define vertical center coordinates for the 4 rows of cubes
+  const float y_bottom = -75.0f;
+  const float y_mid_bottom = -25.0f;
+  const float y_mid_top = 25.0f;
+  const float y_top = 75.0f;
+
+  // Define horizontal center coordinates for the 4 columns of cubes
+  const float x_left = -75.0f;
+  const float x_mid_left = -25.0f;
+  const float x_mid_right = 25.0f;
+  const float x_right = 75.0f;
+
+  // Vertical center for the connecting bar
+  // Average of the two middle vertical centers (-25 and 25) is 0
+  const float y_connector_center = -50.0f;
+
+  // Left vertical column (4 cubes)
+  drawCube(x_left, y_bottom, 0.0f, true);
+  drawCube(x_left, y_mid_bottom, 0.0f, true);
+  drawCube(x_left, y_mid_top, 0.0f, true);
+  drawCube(x_left, y_top, 0.0f, true);
+
+  // Right vertical column (4 cubes)
+  drawCube(x_right, y_bottom, 0.0f, true);
+  drawCube(x_right, y_mid_bottom, 0.0f, true);
+  drawCube(x_right, y_mid_top, 0.0f, true);
+  drawCube(x_right, y_top, 0.0f, true);
+
+  // Middle horizontal connectors (2 cubes) - Centered vertically
+  drawCube(x_mid_left, y_connector_center, 0.0f, true); // Connect at y=0
+  drawCube(x_mid_right, y_connector_center, 0.0f, true); // Connect at y=0
 }
 
 /**
@@ -167,55 +218,6 @@ void createSpindle() {
 }
 
 /**
- * Creates the H letter using 10 solid cubes.
- * Total dimensions: 200x200 (4 cubes wide, 4 cubes high).
- */
-void createHLetter() {
-  // UAH blue from brand guide: RGB = (0,119,200) → (0.0,0.467,0.784) :contentReference[oaicite:0]{index=0}
-  GLfloat amb[]  = { 0.0f, 0.0467f, 0.0784f, 1.0f };  // 10% of diffuse
-  GLfloat diff[] = { 0.0f, 119/255.0f, 200/255.0f, 1.0f };
-  GLfloat spec[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-  GLfloat shin  = 100.0f;  // tight, bright highlights
-
-  glMaterialfv(GL_FRONT, GL_AMBIENT,   amb);
-  glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff);
-  glMaterialfv(GL_FRONT, GL_SPECULAR,  spec);
-  glMaterialf (GL_FRONT, GL_SHININESS, shin);
-
-  // Define vertical center coordinates for the 4 rows of cubes
-  const float y_bottom = -75.0f;
-  const float y_mid_bottom = -25.0f;
-  const float y_mid_top = 25.0f;
-  const float y_top = 75.0f;
-
-  // Define horizontal center coordinates for the 4 columns of cubes
-  const float x_left = -75.0f;
-  const float x_mid_left = -25.0f;
-  const float x_mid_right = 25.0f;
-  const float x_right = 75.0f;
-
-  // Vertical center for the connecting bar
-  // Average of the two middle vertical centers (-25 and 25) is 0
-  const float y_connector_center = 0.0f;
-
-  // Left vertical column (4 cubes)
-  drawCube(x_left, y_bottom, 0.0f, true);
-  drawCube(x_left, y_mid_bottom, 0.0f, true);
-  drawCube(x_left, y_mid_top, 0.0f, true);
-  drawCube(x_left, y_top, 0.0f, true);
-
-  // Right vertical column (4 cubes)
-  drawCube(x_right, y_bottom, 0.0f, true);
-  drawCube(x_right, y_mid_bottom, 0.0f, true);
-  drawCube(x_right, y_mid_top, 0.0f, true);
-  drawCube(x_right, y_top, 0.0f, true);
-
-  // Middle horizontal connectors (2 cubes) - Centered vertically
-  drawCube(x_mid_left, y_connector_center, 0.0f, true); // Connect at y=0
-  drawCube(x_mid_right, y_connector_center, 0.0f, true); // Connect at y=0
-}
-
-/**
  * Initializes display lists for U, A, H letters and the sphere.
  */
 void initDisplayLists() {
@@ -244,19 +246,33 @@ void initDisplayLists() {
 }
 
 void initLighting() {
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
+  // Light properties
+  // Position the light in world space (x, y, z, w)
+  // Set light position at origin, pointing down negative Z
+  GLfloat lightPos[] = {0.0f, 0.0f, 1.0f, 0.0f};
 
-  // Light properties: viewer and light coincident at world origin
-  GLfloat lightPos[]    = { 0.0f, 0.0f, 0.0f, 1.0f };
-  GLfloat lightAmb[]    = { 0.1f, 0.1f, 0.1f, 1.0f };  // low background‑style ambient
-  GLfloat lightDiff[]   = { 0.8f, 0.8f, 0.8f, 1.0f };  // strong general diffuse
-  GLfloat lightSpec[]   = { 1.0f, 1.0f, 1.0f, 1.0f };  // white specular
+  // Ambient light 
+  GLfloat lightAmb[]    = { 0.3f, 0.3f, 0.3f, 1.0f }; 
+
+  // Diffuse light
+  GLfloat lightDiff[]   = { 0.8f, 0.8f, 0.8f, 1.0f };  
+
+  // Specular light
+  GLfloat lightSpec[]   = { 1.0f, 1.0f, 1.0f, 1.0f };  
 
   glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
   glLightfv(GL_LIGHT0, GL_AMBIENT,  lightAmb);
   glLightfv(GL_LIGHT0, GL_DIFFUSE,  lightDiff);
   glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpec);
+
+  // Enable depth testing for proper 3D rendering.
+  glEnable(GL_DEPTH_TEST); 
+
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+
+  // Use smooth shading
+  glShadeModel(GL_SMOOTH);               
 }
 
 /**
@@ -272,16 +288,15 @@ void displayCallback() {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  // 1) Pull the whole scene back so world‑Z = -400 lies at camera Z = 0
-  glTranslatef(0.0f, 0.0f, -400.0f);
+  glTranslatef(0.0f, sceneYOffset, -400.0f);
 
-  // --- Draw the static spindle at world (10,0,-400) ---
+  // Draw the static spindle at world (10,0,-400)
   glPushMatrix();
-    glTranslatef(10.0f, 0.0f, 0.0f);     // pivot in camera space
+    glTranslatef(10.0f, 0.0f, -400.0f);   
     glCallList(spindleList);
   glPopMatrix();
 
-  // --- Rotate only the letters (U, A, H and the red sphere) around that pivot ---
+  // Rotate only the letters (U, A, H and the red sphere) around that spindle
   glPushMatrix();
     // Move pivot to origin
     glTranslatef(10.0f, 0.0f, 0.0f);
@@ -322,14 +337,24 @@ void displayCallback() {
   glutSwapBuffers();
 }
 
-
-
 /**
  * Handles keyboard input to exit the program.
  */
 void keyboardCallback(unsigned char key, int x, int y) {
     if (key == 'Q' || key == 'q') {
         exit(0);
+    }
+    if (key == 'U' || key == 'u') {
+      sceneYOffset += 25.0f; // Move up by 25 units 
+    }
+    if (key == 'D' || key == 'd') {
+      sceneYOffset -= 25.0f; // Move down by 25 units 
+    }
+    if (key == 'K' || key == 'k') {
+      sceneYOffset -= 0.1f; // Increase light intensity
+    }
+    if (key == 'L' || key == 'l') {
+      sceneYOffset -= 0.1f; // Decrease light intensity
     }
 }
 
@@ -347,18 +372,17 @@ int main(int argc, char ** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     my_setup(canvas_Width, canvas_Height, canvas_Name);
+
+    initLighting();
     
     glutDisplayFunc(displayCallback);
     glutKeyboardFunc(keyboardCallback);
 
     glutTimerFunc(22, timerCallback, 0);
     
-    // Enable depth testing for proper 3D rendering.
-    glEnable(GL_DEPTH_TEST);
     
     // Create the display lists for the U, A, H letters.
     initDisplayLists();
-    initLighting();
     
     glutMainLoop();
     return 0;
