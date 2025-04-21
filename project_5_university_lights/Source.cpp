@@ -290,9 +290,8 @@ void displayCallback() {
 
   glTranslatef(0.0f, sceneYOffset, -400.0f);
 
-  // Draw the static spindle at world (10,0,-400)
   glPushMatrix();
-    glTranslatef(10.0f, 0.0f, -400.0f);   
+    glTranslatef(10.0f, 0.0f, 0.0f);   
     glCallList(spindleList);
   glPopMatrix();
 
