@@ -90,7 +90,7 @@ void createHLetter() {
   GLfloat amb[]  = { 0.0f, 0.467f, 0.784f, 1.0f };  
   GLfloat diff[] = { 0.0f, 0.498f, 1.0f, 1.0f };
   GLfloat spec[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-  GLfloat shin  = 100.0f; 
+  GLfloat shin  = 60.0f; 
 
   glMaterialfv(GL_FRONT, GL_AMBIENT,   amb);
   glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff);
@@ -167,10 +167,10 @@ void createALetter() {
   drawCube( 37.5f,  75.0f, z_pos, false); // Cube 10 (175.0 - 112.5, 175.0 - 100.0)
 
   // Now for candy‑apple‑red sphere: hex #FF0800 → (1.0, 0.031, 0.0) 
-  GLfloat amb2[]  = { 0.1f, 0.003f, 0.0f, 1.0f };
-  GLfloat diff2[] = { 1.0f,   8/255.0f, 0.0f, 1.0f };
-  GLfloat spec2[] = { 1.0f,   1.0f,     1.0f, 1.0f };
-  GLfloat shin2  = 100.0f;  // very shiny
+  GLfloat amb2[]  = { 0.5f, 0.015f, 0.0f, 1.0f };
+  GLfloat diff2[] = { 1.0f, 8/255.0f, 0.0f, 1.0f };
+  GLfloat spec2[] = { 0.6f, 0.6f, 0.6f, 1.0f };
+  GLfloat shin2  = 50.0f; 
 
   glMaterialfv(GL_FRONT, GL_AMBIENT,   amb2);
   glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff2);
@@ -194,7 +194,7 @@ void createALetter() {
  * Base width 50, height 75. Drawn relative to its tip at (0,0,0).
  */
 void createSpindle() {
-  GLfloat amb[]  = { 0.1f, 0.1f, 0.1f, 1.0f };
+  GLfloat amb[]  = { 0.2f, 0.2f, 0.2f, 1.0f };
   GLfloat diff[] = { 0.5f, 0.5f, 0.5f, 1.0f };
   GLfloat spec[] = { 0.2f, 0.2f, 0.2f, 1.0f };
   GLfloat shin  = 10.0f;  // very broad, dull highlights
@@ -337,6 +337,20 @@ void displayCallback() {
   glutSwapBuffers();
 }
 
+void changeLightIntensity() {
+  // if (lightIntensity < 0.1f) lightIntensity = 0.1f;
+  // if (lightIntensity > 2.0f) lightIntensity = 2.0f;
+
+  // Update light parameters based on current intensity
+  GLfloat amb[]  = {0.3f * lightIntensity, 0.3f * lightIntensity, 0.3f * lightIntensity, 1.0f};
+  GLfloat diff[] = {0.8f * lightIntensity, 0.8f * lightIntensity, 0.8f * lightIntensity, 1.0f};
+  GLfloat spec[] = {1.0f * lightIntensity, 1.0f * lightIntensity, 1.0f * lightIntensity, 1.0f};
+
+  glLightfv(GL_LIGHT0, GL_AMBIENT, amb);
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, diff);
+  glLightfv(GL_LIGHT0, GL_SPECULAR, spec);
+}
+
 /**
  * Handles keyboard input to exit the program.
  */
@@ -351,10 +365,12 @@ void keyboardCallback(unsigned char key, int x, int y) {
       sceneYOffset -= 25.0f; // Move down by 25 units 
     }
     if (key == 'K' || key == 'k') {
-      sceneYOffset -= 0.1f; // Increase light intensity
+      lightIntensity += 0.1f; // Increase light intensity
+      changeLightIntensity();
     }
     if (key == 'L' || key == 'l') {
-      sceneYOffset -= 0.1f; // Decrease light intensity
+      lightIntensity -= 0.1f; // Decrease light intensity
+      changeLightIntensity();
     }
 }
 
