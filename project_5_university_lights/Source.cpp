@@ -2,8 +2,30 @@
  * Graphics Pgm 5 for Prajun Trital
  * 
  * EXTRA CREDIT
+ * - Shift the Scene with U and N keys.
+ * - Change the Light Source Intensity with K and L keys.
  * 
- * ARCHITECTURE WITH ANIMATION & PERSPECTIVE VIEW
+ * ARCHITECTURE
+ * GLUT event-driven generation of a canvas with lighting and multiple objects, including letters, sphere and a 
+ * spindle. The rendering process is controlled by the `displayCallback` function, that calls the series of 
+ * display lists to draw the letters, spindle and sphere. The `displayCallback` function utilizes the `drawCube` 
+ * function to draw those cubes. The `initDisplayLists` initiates the displaylist for letters, sphere and 
+ * spindle. These objects are creted with a series of transformations and material properties to enchance 
+ * their appearacnce. The lighting is configured using the `initLighting` fucntion to ensure the scene 
+ * is illuminated correctly. The `initLighting` and `initDisplayLists` functions are being called from the main. 
+ * The lighting setup uses a single light source placed at the origin and directed along the negative Z-axis. 
+ * The `timerCallback` function is responsible for rotating the scene, with a time interval of 22 ms per update, 
+ * ensuring that the rotation completes smoothly in approximately 2 seconds. The `keyboardCallback` detect the
+ * keyboard press to move the object as well as to change the light intensity. The `gluPerspective` 
+ * is used to set the camera's field of view to 90 degrees, with an aspect ratio defined by the window's width 
+ * and height, and a near clipping plane at 1.0 and a far clipping plane at 1010.0, ensuring proper perspective 
+ * projection for the scene.
+ * 
+ * EXTRA CREDIT ARCHITECTURE
+ * The `sceneYOffset` variable is updated based on keyboard inputs to move the scene up and down, and its value is 
+ * used in the `displayCallback` to adjust the scene's position. Similarly, the `lightIntensity` variable is modified
+ * through keyboard presses to control the light intensity, and this value is utilized in the `changeLightIntensity`
+ * function to dynamically adjust the lighting in the scene.
 */
 
 #include <GL/glew.h>
@@ -14,7 +36,7 @@
 #define canvas_Width 800
 #define canvas_Height 800
 
-// Display list indices
+// Display lists
 GLuint uLetterList;
 GLuint aLetterList;
 GLuint hLetterList;
@@ -29,12 +51,19 @@ const float SPHERE_RADIUS = 25.0f;
 // Global rotation angle for animation
 float rotationAngle = 0.0f;
 
+// Global Y Offset
 float sceneYOffset = 0.0f;
 
+// Global light Intensity
 float lightIntensity = 1.0f;
 
 /**
  * Draws a cube at the specified position.
+ *
+ * @param x      X-coordinate of the cube center.
+ * @param y      Y-coordinate of the cube center.
+ * @param z      Z-coordinate of the cube center.
+ * @param solid  If true, renders a solid cube; otherwise, renders a wireframe cube.
  */
 void drawCube(float x, float y, float z, bool solid) {
     glPushMatrix();
@@ -48,11 +77,10 @@ void drawCube(float x, float y, float z, bool solid) {
 }
 
 /**
- * Creates the U letter using solid cubes.
- */
-/**
- * Creates the U letter using 10 solid cubes.
- * Total dimensions: 200x200 (4 cubes wide, 4 cubes high).
+ * Creates the letter 'U' using 10 solid cubes.
+ *
+ * Constructs a capital 'U' by arranging 10 solid cubes. 
+ * The structure consists of two vertical columns and a connecting base.
  */
 void createULetter() {
   GLfloat amb[]  = { 0.0f, 0.467f, 0.784f, 1.0f };  
@@ -60,19 +88,18 @@ void createULetter() {
   GLfloat spec[] = { 1.0f, 1.0f, 1.0f, 1.0f };
   GLfloat shin  = 60.0f; 
 
-  glMaterialfv(GL_FRONT, GL_AMBIENT,   amb);
-  glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff);
-  glMaterialfv(GL_FRONT, GL_SPECULAR,  spec);
-  glMaterialf (GL_FRONT, GL_SHININESS, shin);
+  glMaterialfv(GL_FRONT, GL_AMBIENT, amb);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, diff);
+  glMaterialfv(GL_FRONT, GL_SPECULAR,spec);
+  glMaterialf (GL_FRONT, GL_SHININESS,shin);
 
-  // Left vertical column (4 cubes) - Center X = -75
+  // Left vertical column (4 cubes)
   drawCube(-75.0f, -75.0f, 0.0f, true); // Bottom
   drawCube(-75.0f, -25.0f, 0.0f, true);
   drawCube(-75.0f,  25.0f, 0.0f, true);
   drawCube(-75.0f,  75.0f, 0.0f, true); // Top
 
-  // Bottom horizontal bar (2 cubes) - Center Y = -75
-  // These fill the gap between the left and right columns
+  // Bottom horizontal bar (2 cubes)
   drawCube(-25.0f, -75.0f, 0.0f, true); // Middle-left
   drawCube( 25.0f, -75.0f, 0.0f, true); // Middle-right
 
@@ -83,8 +110,11 @@ void createULetter() {
 }
 
 /**
- * Creates the H letter using 10 solid cubes.
- * Total dimensions: 200x200 (4 cubes wide, 4 cubes high).
+ * Creates the letter 'H' using 10 solid cubes.
+ *
+ * It constructs a capital 'H' by arranging 10 solid cubes.
+ * The structure consists of two vertical columns and a central 
+ * horizontal connector bar.
  */
 void createHLetter() {
   GLfloat amb[]  = { 0.0f, 0.467f, 0.784f, 1.0f };  
@@ -97,20 +127,19 @@ void createHLetter() {
   glMaterialfv(GL_FRONT, GL_SPECULAR,  spec);
   glMaterialf (GL_FRONT, GL_SHININESS, shin);
 
-  // Define vertical center coordinates for the 4 rows of cubes
+  // Vertical center coordinates for the 4 rows of cubes
   const float y_bottom = -75.0f;
   const float y_mid_bottom = -25.0f;
   const float y_mid_top = 25.0f;
   const float y_top = 75.0f;
 
-  // Define horizontal center coordinates for the 4 columns of cubes
+  // Horizontal center coordinates for the 4 columns of cubes
   const float x_left = -75.0f;
   const float x_mid_left = -25.0f;
   const float x_mid_right = 25.0f;
   const float x_right = 75.0f;
 
   // Vertical center for the connecting bar
-  // Average of the two middle vertical centers (-25 and 25) is 0
   const float y_connector_center = -50.0f;
 
   // Left vertical column (4 cubes)
@@ -125,20 +154,23 @@ void createHLetter() {
   drawCube(x_right, y_mid_top, 0.0f, true);
   drawCube(x_right, y_top, 0.0f, true);
 
-  // Middle horizontal connectors (2 cubes) - Centered vertically
-  drawCube(x_mid_left, y_connector_center, 0.0f, true); // Connect at y=0
-  drawCube(x_mid_right, y_connector_center, 0.0f, true); // Connect at y=0
+  // Horizontal connector
+  drawCube(x_mid_left, y_connector_center, 0.0f, true); 
+  drawCube(x_mid_right, y_connector_center, 0.0f, true);
 }
 
 /**
- * Creates the A letter using wireframe cubes.
+ * Creates the letter 'A' using 10 wireframe cubes and adds red sphere.
+ * 
+ * It constructs the capital letter 'A' by arranging 10 wireframe cubes
+ * across four vertical layers. A candy-apple-red sphere is also placed between
+ * the inner cubes of the third layer.
  */
 void createALetter() {
-  // Silver‑like wireframe material
   GLfloat amb1[]  = { 0.2f, 0.2f, 0.2f, 1.0f };
   GLfloat diff1[] = { 0.75f,0.75f,0.75f,1.0f };
   GLfloat spec1[] = { 0.9f, 0.9f, 0.9f, 1.0f };
-  GLfloat shin1  = 50.0f;  // moderate shininess
+  GLfloat shin1  = 50.0f; 
 
   glMaterialfv(GL_FRONT, GL_AMBIENT,   amb1);
   glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff1);
@@ -147,24 +179,23 @@ void createALetter() {
 
   const float z_pos = 0.0f; 
 
-  // Draw cubes using pre-calculated centered coordinates relative to local (0,0,0)
   // Layer 1 (Bottom): Cubes 1, 2
   drawCube(-87.5f, -75.0f, z_pos, false); // Cube 1 
   drawCube( 112.5f, -75.0f, z_pos, false); // Cube 2 
 
   // Layer 2: Cubes 3, 4, 5, 6
-  drawCube(-62.5f, -25.0f, z_pos, false); // Cube 3 (50.0 - 112.5, 75.0 - 100.0)
-  drawCube(-12.5f, -25.0f, z_pos, false); // Cube 4 (100.0 - 112.5, 75.0 - 100.0)
-  drawCube( 37.5f, -25.0f, z_pos, false); // Cube 5 (150.0 - 112.5, 75.0 - 100.0)
-  drawCube( 87.5f, -25.0f, z_pos, false); // Cube 6 (200.0 - 112.5, 75.0 - 100.0)
+  drawCube(-62.5f, -25.0f, z_pos, false); // Cube 3
+  drawCube(-12.5f, -25.0f, z_pos, false); // Cube 4 
+  drawCube( 37.5f, -25.0f, z_pos, false); // Cube 5 
+  drawCube( 87.5f, -25.0f, z_pos, false); // Cube 6 
 
   // Layer 3: Cubes 7, 8
-  drawCube(-37.5f,  25.0f, z_pos, false); // Cube 7 (75.0 - 112.5, 125.0 - 100.0)
-  drawCube( 62.5f,  25.0f, z_pos, false); // Cube 8 (175.0 - 112.5, 125.0 - 100.0)
+  drawCube(-37.5f,  25.0f, z_pos, false); // Cube 7 
+  drawCube( 62.5f,  25.0f, z_pos, false); // Cube 8 
 
   // Layer 4 (Top): Cubes 9, 10
-  drawCube(-12.5f,  75.0f, z_pos, false); // Cube 9 (75.0 - 112.5, 175.0 - 100.0)
-  drawCube( 37.5f,  75.0f, z_pos, false); // Cube 10 (175.0 - 112.5, 175.0 - 100.0)
+  drawCube(-12.5f,  75.0f, z_pos, false); // Cube 9
+  drawCube( 37.5f,  75.0f, z_pos, false); // Cube 10
 
   // Now for candy‑apple‑red sphere: hex #FF0800 → (1.0, 0.031, 0.0) 
   GLfloat amb2[]  = { 0.5f, 0.015f, 0.0f, 1.0f };
@@ -181,7 +212,7 @@ void createALetter() {
    // Gap Center X = (-37.5 + 62.5) / 2 = 25.0 / 2 = 12.5
    // Gap Center Y is the same as Cube 7 and 8's Y center = 25.0
    const float sphere_center_x = 12.5f;
-   const float sphere_center_y = 25.0f; // c7y or c8y
+   const float sphere_center_y = 25.0f;
 
    glPushMatrix();
      glTranslatef(sphere_center_x, sphere_center_y, z_pos);
@@ -190,14 +221,14 @@ void createALetter() {
 }
 
 /**
- * Creates the inverted triangular spindle geometry with base pointing upwards.
- * Base width 50, height 75. Drawn relative to its tip at (0,0,0).
+ * Creates the inverted triangular spindle with base pointing upwards with
+ * base of 50 units and height of 75.
  */
 void createSpindle() {
   GLfloat amb[]  = { 0.2f, 0.2f, 0.2f, 1.0f };
   GLfloat diff[] = { 0.5f, 0.5f, 0.5f, 1.0f };
   GLfloat spec[] = { 0.2f, 0.2f, 0.2f, 1.0f };
-  GLfloat shin  = 10.0f;  // very broad, dull highlights
+  GLfloat shin  = 10.0f; 
 
   glMaterialfv(GL_FRONT, GL_AMBIENT,   amb);
   glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff);
@@ -207,18 +238,25 @@ void createSpindle() {
   const float base_width = 50.0f;
   const float height = 75.0f;
   const float half_base = base_width / 2.0f;
-  const float z_pos = 0.0f; // Keep in the same Z-plane
+  const float z_pos = 0.0f;
 
   glBegin(GL_TRIANGLES);
     // Define vertices relative to the tip (0,0)
-    glVertex3f(0.0f, 0.0f, z_pos);        // Tip (at the local origin)
+    glVertex3f(0.0f, 0.0f, z_pos);         // Tip (at the local origin)
     glVertex3f(-half_base, height, z_pos); // Base Left vertex (above the tip)
     glVertex3f(half_base, height, z_pos);  // Base Right vertex (above the tip)
   glEnd();
 }
 
 /**
- * Initializes display lists for U, A, H letters and the sphere.
+ * It compiles the characters 'U', 'A', and 'H',
+ * as well as the spindle object, into OpenGL display lists.
+ * 
+ * Each element is assigned a unique display list ID:
+ * - `uLetterList` — Compiles the 'U' letter.
+ * - `aLetterList` — Compiles the 'A' letter.
+ * - `spindleList` — Compiles the spindle.
+ * - `hLetterList` — Compiles the 'H' letter.
  */
 void initDisplayLists() {
     // Create display list for the U letter.
@@ -233,9 +271,9 @@ void initDisplayLists() {
       createALetter();
     glEndList();
 
-    spindleList = glGenLists(3); // Assign index to spindleList
+    spindleList = glGenLists(3); 
     glNewList(spindleList, GL_COMPILE);
-      createSpindle(); // Compile the spindle drawing function
+      createSpindle(); 
     glEndList();
     
     // Create display list for the H letter.
@@ -245,6 +283,11 @@ void initDisplayLists() {
     glEndList();
 }
 
+/**
+ * Initializes the lighting configuration for the scene.
+ * It enables depth testing for correct 3D rendering. 
+ * Also applies smooth shading.
+ */
 void initLighting() {
   // Light properties
   // Position the light in world space (x, y, z, w)
@@ -271,16 +314,24 @@ void initLighting() {
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
 
-  // Use smooth shading
+  // Using smooth shading
   glShadeModel(GL_SMOOTH);               
 }
 
 /**
- * The display callback function that renders the animated scene,
- * rotating the entire U‑A‑H characters about the spindle axis.
+ * Renders the animated U-A-H scene with the sphere and spindle.
+ * 
+ * It is responsible for rendering the entire scene, which includes:
+ * - Clearing the screen and depth buffer.
+ * - Setting up the model-view matrix.
+ * - Rendering a stationary spindle object.
+ * - Rotating the letters 'U', 'A', 'H', and a red sphere around the spindle axis.
+ *
+ * The letters are positioned relative to one another with appropriate gaps and 
+ * centered vertically. The rotation is performed around the spindle by translating 
+ * to the pivot point, applying the rotation, and translating back.
  */
 void displayCallback() {
-  // Clear the screen
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -290,12 +341,13 @@ void displayCallback() {
 
   glTranslatef(0.0f, sceneYOffset, -400.0f);
 
+  // Draw the spindle
   glPushMatrix();
     glTranslatef(10.0f, 0.0f, 0.0f);   
     glCallList(spindleList);
   glPopMatrix();
 
-  // Rotate only the letters (U, A, H and the red sphere) around that spindle
+  // Rotate the letters (U, A, H and the red sphere) around that spindle
   glPushMatrix();
     // Move pivot to origin
     glTranslatef(10.0f, 0.0f, 0.0f);
@@ -319,7 +371,7 @@ void displayCallback() {
       glCallList(uLetterList);
     glPopMatrix();
 
-    // Draw A + red sphere (but no spindle inside here)
+    // Draw A + red sphere
     glPushMatrix();
       glTranslatef(a_cx, center_y, 0.0f);
       glCallList(aLetterList);
@@ -336,11 +388,15 @@ void displayCallback() {
   glutSwapBuffers();
 }
 
+/**
+ * Updates the lighting parameters based on the current light intensity.
+ * 
+ * This function recalculates the ambient, diffuse, and specular components of 
+ * the light using the current `lightIntensity` value. 
+ * It is called from keyboard callback when the user increases or decreases the 
+ * light intensity.
+ */
 void changeLightIntensity() {
-  // if (lightIntensity < 0.1f) lightIntensity = 0.1f;
-  // if (lightIntensity > 2.0f) lightIntensity = 2.0f;
-
-  // Update light parameters based on current intensity
   GLfloat amb[]  = {0.3f * lightIntensity, 0.3f * lightIntensity, 0.3f * lightIntensity, 1.0f};
   GLfloat diff[] = {0.8f * lightIntensity, 0.8f * lightIntensity, 0.8f * lightIntensity, 1.0f};
   GLfloat spec[] = {1.0f * lightIntensity, 1.0f * lightIntensity, 1.0f * lightIntensity, 1.0f};
@@ -351,7 +407,21 @@ void changeLightIntensity() {
 }
 
 /**
- * Handles keyboard input to exit the program.
+ * Handles keyboard input for manipulating the University lights and scene.
+ *
+ * This function responds to specific key presses:
+ * - 'u' / 'U': Moves the scene upward by 25 units.
+ * - 'n' / 'N': Moves the scene downward by 25 units.
+ * - 'k' / 'K': Increases the light intensity by 0.1 units.
+ * - 'l' / 'L': Decreases the light intensity by 0.1 units.
+ * - 'q' / 'Q': Exits the application.
+ *
+ * Light intensity changes invoke the `changeLightIntensity()` function to reflect
+ * the new settings in the scene.
+ *
+ * @param key The key pressed by the user.
+ * @param x The x-coordinate of the mouse pointer.
+ * @param y The y-coordinate of the mouse pointer.
  */
 void keyboardCallback(unsigned char key, int x, int y) {
     if (key == 'Q' || key == 'q') {
@@ -360,7 +430,7 @@ void keyboardCallback(unsigned char key, int x, int y) {
     if (key == 'U' || key == 'u') {
       sceneYOffset += 25.0f; // Move up by 25 units 
     }
-    if (key == 'D' || key == 'd') {
+    if (key == 'N' || key == 'n') {
       sceneYOffset -= 25.0f; // Move down by 25 units 
     }
     if (key == 'K' || key == 'k') {
@@ -373,11 +443,22 @@ void keyboardCallback(unsigned char key, int x, int y) {
     }
 }
 
+/**
+ * Animates the University lights in a counterclockwise direction 
+ * by 4 degrees per frame. A full rotation (360 degrees) is completed in approximately 
+ * 2 seconds. Since 360 / 4 = 90 steps are required for a full rotation, each step is spaced 
+ * roughly 22 milliseconds apart (2000 ms / 90 ≈ 22 ms).
+ * 
+ * @param val Integer Used to determine which time event to envoke.
+ */
 void timerCallback(int value) {
   rotationAngle += 4.0f;
-  if (rotationAngle >= 360.0f) rotationAngle -= 360.0f;
+
+  if (rotationAngle >= 360.0f) {
+    rotationAngle -= 360.0f;
+  }
+
   glutPostRedisplay();
-  // 90 steps × 4° = 360° over 2000 ms → ∼22 ms per step
   glutTimerFunc(22, timerCallback, 0);
 }
 
@@ -392,11 +473,8 @@ int main(int argc, char ** argv) {
     
     glutDisplayFunc(displayCallback);
     glutKeyboardFunc(keyboardCallback);
-
     glutTimerFunc(22, timerCallback, 0);
     
-    
-    // Create the display lists for the U, A, H letters.
     initDisplayLists();
     
     glutMainLoop();

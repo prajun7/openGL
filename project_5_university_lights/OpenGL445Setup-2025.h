@@ -22,8 +22,6 @@ void my_3d_projection(int width, int height)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(90.0, width_bound / height_bound, 1.0, 1010.0);
-
-    // glOrtho(-width_bound/2, width_bound/2, -height_bound/2, height_bound/2, 100.0, 900.0);
     glMatrixMode(GL_MODELVIEW);
 }
 
