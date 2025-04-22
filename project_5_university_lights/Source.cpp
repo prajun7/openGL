@@ -292,13 +292,13 @@ void initLighting() {
   // Light properties
   // Position the light in world space (x, y, z, w)
   // Set light position at origin, pointing down negative Z
-  GLfloat lightPos[] = {0.0f, 0.0f, 1.0f, 0.0f};
+  GLfloat lightPos[] = {0.0f, 0.0f, 0.0f, 1.0f};
 
   // Ambient light 
   GLfloat lightAmb[]    = { 0.3f, 0.3f, 0.3f, 1.0f }; 
 
   // Diffuse light
-  GLfloat lightDiff[]   = { 0.8f, 0.8f, 0.8f, 1.0f };  
+  GLfloat lightDiff[]   = { 1.0f, 1.0f, 1.0f, 1.0f };  
 
   // Specular light
   GLfloat lightSpec[]   = { 1.0f, 1.0f, 1.0f, 1.0f };  
