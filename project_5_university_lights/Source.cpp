@@ -91,7 +91,7 @@ void createULetter() {
   glMaterialfv(GL_FRONT, GL_AMBIENT, amb);
   glMaterialfv(GL_FRONT, GL_DIFFUSE, diff);
   glMaterialfv(GL_FRONT, GL_SPECULAR,spec);
-  glMaterialf (GL_FRONT, GL_SHININESS,shin);
+  glMaterialf (GL_FRONT, GL_SHININESS, shin);
 
   // Left vertical column (4 cubes)
   drawCube(-75.0f, -75.0f, 0.0f, true); // Bottom
@@ -122,9 +122,9 @@ void createHLetter() {
   GLfloat spec[] = { 1.0f, 1.0f, 1.0f, 1.0f };
   GLfloat shin  = 60.0f; 
 
-  glMaterialfv(GL_FRONT, GL_AMBIENT,   amb);
-  glMaterialfv(GL_FRONT, GL_DIFFUSE,   diff);
-  glMaterialfv(GL_FRONT, GL_SPECULAR,  spec);
+  glMaterialfv(GL_FRONT, GL_AMBIENT, amb);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, diff);
+  glMaterialfv(GL_FRONT, GL_SPECULAR, spec);
   glMaterialf (GL_FRONT, GL_SHININESS, shin);
 
   // Vertical center coordinates for the 4 rows of cubes
@@ -225,9 +225,9 @@ void createALetter() {
  * base of 50 units and height of 75.
  */
 void createSpindle() {
-  GLfloat amb[]  = { 0.2f, 0.2f, 0.2f, 1.0f };
+  GLfloat amb[]  = { 0.3f, 0.3f, 0.3f, 1.0f };
   GLfloat diff[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-  GLfloat spec[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+  GLfloat spec[] = { 0.3f, 0.3f, 0.3f, 1.0f };
   GLfloat shin  = 10.0f; 
 
   glMaterialfv(GL_FRONT, GL_AMBIENT,   amb);
