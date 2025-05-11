@@ -1,3 +1,3 @@
-# CS 545 Introduction to Computer Graphics - UAH
+# Introduction to Computer Graphics
 
 An introduction to interactive computer graphics, covering its foundational mechanics, underlying theories, and historical development. This includes an overview of essential hardware components, fundamental modeling techniques, basic lighting principles, and key algorithms for rasterization. The course also explores core transformations, viewing techniques, and the foundational concepts of 3D computer graphics. Additionally, it delves into graphical performance analysis, providing insights into optimizing rendering efficiency and real-time graphics performance.
